@@ -1,0 +1,109 @@
+#'---
+#' title: generate outrider features
+#' author: xueqicao
+#' wb:
+#'  py:
+#'   - |
+#'    annotations = config["geneAnnotation"]
+#'    inputDatasets = config["cohort"]["single_group"]
+#'    outputDatasets = config["cohort"]["single_group"]
+#'  params:
+#'    - projectPath: '`sm config["projectPath"]`'
+#'    - annotations: '`sm annotations`'
+#'    - gencode: '`sm config["gencode"]`'
+#'    - sampAnno: '`sm config["sampleAnnotation"]`'
+#'    - inputDatasets: '`sm inputDatasets`'
+#'    - outputDatasets: '`sm outputDatasets`'
+#'  input:
+#'    - ods: '`sm expand(config["outriderDir"] +"/processed_results/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds",
+#'             annotation=annotations, dataset=inputDatasets)`'
+#'  output:
+#'    - nr_topK_per_gene: '`sm expand(config["projectPath"] + 
+#'                          "/processed_data/outlier_feature/or-{dataset}-topK.tsv", dataset=outputDatasets)`'
+#'    - padjCutoffs_per_gene: '`sm expand(config["projectPath"] + 
+#'                                    "/processed_data/outlier_feature/or-{dataset}-padjCutoffs.tsv", dataset=outputDatasets)`'
+#'    - zScore_per_gene: '`sm expand(config["projectPath"] + 
+#'                                  "/processed_data/outlier_feature/or-{dataset}-zScore.tsv", dataset=outputDatasets)`'
+#'  type: script
+#'  threads: 1  
+#'  resources:
+#'    - mem_mb: 12000
+#'---
+
+#+ echo=FALSE
+saveRDS(snakemake, file.path(snakemake@params$projectPath,
+                             "/processed_data/snakemake/generate_outrider_features.snakemake"))
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202303/processed_data/snakemake/generate_outrider_features.snakemake")
+ 
+
+
+
+##### function #####
+source("Scripts/preprocessing/outlier_feature/functions.R")
+
+
+
+
+##### process the data #####
+suppressPackageStartupMessages({
+  library(data.table)
+  library(magrittr)
+  library(dplyr)
+  library(tidyr)
+  library(OUTRIDER)
+  library(BiocParallel)
+})
+
+#+ define paths
+gencode <- fread(snakemake@params$gencode)
+sampAnno <- fread(snakemake@params$sampAnno)
+ods_input_path <- snakemake@input$ods
+outputDatasets <- snakemake@params$outputDatasets
+nr_topK_per_gene_paths <- snakemake@output$nr_topK_per_gene
+padjCutoffs_per_gene_paths <- snakemake@output$padjCutoffs_per_gene
+zScore_per_gene_paths <- snakemake@output$zScore_per_gene
+
+
+#+ write result
+register(MulticoreParam(snakemake@threads))
+message(date(), ": Running with ", bpworkers(), " workers ...")
+
+k <- c(1, 5, 10, 25, 50)
+cutoff_padj <- c(0.01, 0.05, 0.1)
+cutoff_zscore <- c(2, 4, 6)
+
+sampAnno_sep <- separate_rows(sampAnno, 'DROP_GROUP', sep = ",") %>% as.data.table()
+sampleID_single_group <- sampAnno_sep[DROP_GROUP==outputDatasets, ArrayID]
+
+ods_input <- readRDS(ods_input_path)
+ods_input <- ods_input[, colnames(ods_input) %in% sampleID_single_group]
+dim(ods_input)
+
+res_lists <- bplapply(seq_len(length(nr_topK_per_gene_paths)),
+                      function(i){
+                        
+                        # read in 
+                        ods <- ods_input
+                        gene_dt <- createGeneTable(ods, gencode)
+                        rowData(ods)$geneID <- gene_dt[, geneID]
+                        
+                        # make dir
+                        proResDir <- dirname(nr_topK_per_gene_paths[i])
+                        if(!dir.exists(proResDir)){
+                          dir.create(proResDir)
+                        }
+                        message("Output dir: ", proResDir)
+                        
+                        # write
+                        nr_topK_per_gene <- createTopKbyZScore(ods, k, gene_dt, nr_topK_per_gene_paths[i])
+                        padjCutoffs_per_gene <- createPadjCutoffbyZScore(ods, cutoff_padj, gene_dt, padjCutoffs_per_gene_paths[i])
+                        zScore_per_gene <- createZscoreSig(ods, cutoff_zscore, gene_dt, zScore_per_gene_paths[i])
+                        
+                        res_list <- list(nr_topK_per_gene, padjCutoffs_per_gene, zScore_per_gene)
+                        names(res_list) <- c("nr_topK_per_gene", "padjCutoffs_per_gene", "zScore_per_gene")
+                        return(res_list)
+                      })
+names(res_lists) <- outputDatasets 
+print( paste0("Total number of groups: ", length(res_lists)))
+
+
