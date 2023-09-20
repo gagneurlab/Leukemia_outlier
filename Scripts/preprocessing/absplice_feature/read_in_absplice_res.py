@@ -8,9 +8,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python [conda env:anaconda-absplice_paper]
+#     display_name: Python [conda env:absplice]
 #     language: python
-#     name: conda-env-anaconda-absplice_paper-py
+#     name: absplice
 # ---
 
 # %% [markdown]
