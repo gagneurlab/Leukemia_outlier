@@ -35,13 +35,5 @@ intOGen was run on version commit 437a047 (https://bitbucket.org/intogen/intogen
 ## Driver gene prediction
 Pipeline to identify leukemia driver gene.
 
-### Setup project
-1. Specify project directory path `projectPath` in `wbuild.yaml` and `Scripts/experiment_design_mll.py`
-2. Install conda environment `conda env create -f driver_gene_prediction/envs/vale_202204.yaml`
-
 ### Run driver gene prediction
-1. Move to driver gene prediction folder 
-`cd driver_gene_prediction`
-2. Add experimental design by running `Scripts/experiment_design.py`
-3. Dry run: `snakemake -n`
-4. Run the pipeline: `snakemake --cores 4 --use-conda`
+See `driver_gene_prediction/readme.md`
