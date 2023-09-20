@@ -1,5 +1,5 @@
 # Leukemia outlier
-Aberrant transcriptome analysis of 3,760 hematologic malignancies.
+Aberrant genome and transcriptome analysis of 3,760 hematologic malignancies.
 
 
 
