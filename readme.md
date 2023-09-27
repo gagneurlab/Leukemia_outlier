@@ -4,7 +4,7 @@ Aberrant genome and transcriptome analysis of 3,760 hematologic malignancies.
 
 
 ## OUTRIDER
-OUTRIDER was run using branch `outrier2` (https://github.com/gagneurlab/OUTRIDER/tree/outrider2) and DROP v 1.1.0 (https://github.com/gagneurlab/drop/releases/tag/1.1.0)
+OUTRIDER was run using branch `outrider2` (https://github.com/gagneurlab/OUTRIDER/tree/outrider2) and DROP v 1.1.0 (https://github.com/gagneurlab/drop/releases/tag/1.1.0)
 
 
 
