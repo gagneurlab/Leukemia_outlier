@@ -24,7 +24,7 @@ import itertools
 
 # %%
 # this path should be identical to the file `wbuild.yaml` variable `projectPath`  
-project_path =  "/s/project/vale/driver_prediction_published_test" 
+project_path =  "/s/project/vale/driver_prediction_202312" 
 if not os.path.exists(project_path):
     os.mkdir(project_path)
 
@@ -167,12 +167,12 @@ outlier_input_feature = [""]
 coess_input_feature = [""]
 
 # %%
-# experiment_df = add_exp(experiment_df, 
-#                         label_gene_list, sample_group, model_method, 
-#                         intogen_input_feature, outlier_input_feature, coess_input_feature, 
-#                         random_seed, solvers, penalty, max_iter, 
-#                         n_estimators, min_samples_split, max_depth, 
-#                         weight_true, weight_false, tree_method)
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
 
 # %% [markdown]
 # # add outlier setup 
@@ -186,12 +186,12 @@ outlier_input_feature = ["or", "ac", "absplice", "fr",
 coess_input_feature = [""]
 
 # %%
-# experiment_df = add_exp(experiment_df, 
-#                         label_gene_list, sample_group, model_method, 
-#                         intogen_input_feature, outlier_input_feature, coess_input_feature, 
-#                         random_seed, solvers, penalty, max_iter, 
-#                         n_estimators, min_samples_split, max_depth, 
-#                         weight_true, weight_false, tree_method)
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
 
 # %% [markdown]
 # # add combined setup
@@ -265,48 +265,3 @@ if os.path.exists(experiment_filepath):
     os.remove(experiment_filepath)
     
 os.symlink(experiment_filepath_time, experiment_filepath)
-
-# %% [markdown]
-# # test subset
-
-# %%
-experiment_df = experiment_df.loc[
-    (np.isin(experiment_df.model_method, ['rf'])) *
-    (np.logical_not(experiment_df.outlier_input_feature.str.contains('absplice')))
-]
-
-# %%
-experiment_df.shape
-
-# %%
-experimentDesign = pd.read_csv(experiment_filepath, sep='\t')
-experimentDesign = experimentDesign.fillna('')
-
-# %%
-# experimentDesign = experimentDesign.loc[
-#     (np.isin(experimentDesign.model_method, ['rf'])) *
-#     (np.logical_not(experimentDesign.outlier_input_feature.str.contains('absplice')))
-# ]
-
-# %%
-experimentDesign_1 = experimentDesign.loc[
-    (np.isin(experimentDesign.model_method, ['rf'])) *
-    (np.logical_not(experimentDesign.outlier_input_feature.str.contains('absplice')))
-]
-experimentDesign_2 = experimentDesign.loc[
-    (np.isin(experimentDesign.model_method, ['rf'])) *
-    (np.isin(experimentDesign.sample_group, ['AML', 'leukemia_14group']))
-]
-experimentDesign = pd.concat([experimentDesign_1, experimentDesign_2]).drop_duplicates()
-
-
-# %%
-experimentDesign
-
-# %%
-experimentDesign = experimentDesign.loc[
-    (np.isin(experimentDesign.model_method, ['rf'])) *
-    (np.isin(experimentDesign.outlier_input_feature, ['absplice'], invert=True))
-]
-
-# %%
