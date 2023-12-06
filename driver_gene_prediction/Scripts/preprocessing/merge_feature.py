@@ -29,8 +29,8 @@ snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/merge
 pickle.dump(snakemake, open(snakemake_path, "wb"))
 
 # %%
-file = open("/s/project/vale/driver_prediction_published_202309/processed_data/snakemake/merge_feature.p",'rb')
-snakemake = pickle.load(file)
+# file = open("/s/project/vale/driver_prediction_published_202309/processed_data/snakemake/merge_feature.p",'rb')
+# snakemake = pickle.load(file)
 
 # %%
 gencode_path = snakemake.params.gencode
