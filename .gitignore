@@ -7,3 +7,4 @@
 *.tmp
 *.snakemake
 *logs
+*pycache*
