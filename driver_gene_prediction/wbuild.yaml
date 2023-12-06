@@ -3,8 +3,8 @@ projectTitle: driver_prediction
 
 
 # Project path
-projectPath: /s/project/vale/driver_prediction_published_test
-htmlOutputPath: /s/project/vale/driver_prediction_published_test/Output/html
+projectPath: /s/project/vale/driver_prediction_202312
+htmlOutputPath: /s/project/vale/driver_prediction_202312/Output/html
 scriptsPath: Scripts
 fileRegex: .*
 tmpDirPath: .tmp
@@ -12,8 +12,8 @@ tmpDirPath: .tmp
 
 # sample annotation
 sampleAnnotation: /s/project/mll/sample_info/sample_annotation_for_drop.tsv
-experimentDesign: /s/project/vale/driver_prediction_published_test/experiment_design.tsv
-manuscriptWording: /s/project/vale/driver_prediction_published_test/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
+experimentDesign: /s/project/vale/driver_prediction_202312/experiment_design.tsv
+manuscriptWording: /s/project/vale/driver_prediction_202312/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
 
 # cancer gene list
 CGC_cancer_gene: /s/project/vale/Resource/Census_allMon_20221205_GRCh37_v97.tsv
