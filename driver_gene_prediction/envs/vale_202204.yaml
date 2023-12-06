@@ -1,4 +1,4 @@
-name: driver_gene_prediction
+name: vale_202204
 channels:
   - anaconda
   - conda-forge
