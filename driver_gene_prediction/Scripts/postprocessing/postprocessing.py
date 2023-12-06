@@ -29,7 +29,7 @@ from plotnine import *
 
 # %%
 # import functions
-if os.getcwd().split('/')[-1] == 'vale':
+if os.getcwd().split('/')[-1] == 'driver_gene_prediction':
     sys.path.append('Scripts/function/') # path to use when run the script from snakemake pipeline
 else: 
     sys.path.append('../function/') # path to use when run the script locally from jupyterlab
