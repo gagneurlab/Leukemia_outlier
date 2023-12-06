@@ -1,4 +1,4 @@
-name: absplice
+name: vale_absplice
 channels:
   - conda-forge
   - bioconda
@@ -12,4 +12,6 @@ dependencies:
   - tqdm==4.62.3
   - cloudpickle==2.0.0
   - pickleshare==0.7.5
-prefix: /opt/modules/i12g/anaconda/envs/absplice
+  - pyarrow==6.0.1
+  - fastparquet==0.8.0
+prefix: /opt/modules/i12g/anaconda/envs/vale_absplice

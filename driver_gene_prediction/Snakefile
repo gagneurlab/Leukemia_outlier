@@ -98,7 +98,7 @@ rule read_in_absplice_res:
         gencode=config['gencode'],
         samp_anno=config['sampleAnnotation'],
     conda:
-        "envs/absplice.yaml"
+        "envs/vale_absplice.yaml"
     script: 
         "Scripts/preprocessing/absplice_feature/read_in_absplice_res.py"
         
