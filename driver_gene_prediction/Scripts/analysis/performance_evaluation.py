@@ -22,6 +22,7 @@ import itertools
 import numpy as np
 import pandas as pd
 from functools import reduce
+import warnings
 
 
 # %%
@@ -33,8 +34,6 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_recall_curve
-
-
 
 # %%
 # import functions
@@ -67,8 +66,7 @@ label_gene_list = 'CGC_leukemia_gene'
 sample_group = 'leukemia_14group'
 model_method = 'rf'
 intogen_input_feature = ['clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv', '']
-# outlier_input_feature = ['absplice','fr', 'or,ac', 'or,ac,absplice,fr', 'or,ac,fr']
-outlier_input_feature = ['or,ac,absplice,fr']
+outlier_input_feature = ['or,ac,absplice,fr', '']
 coess_input_feature = ['', "coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
 
 plot_sub_dir = 'test'
@@ -83,7 +81,7 @@ color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 # %%
 # add more colors
-color_cycle_customized = color_cycle + ["crimson", "indigo", "olive"]
+color_cycle_customized = color_cycle + ["crimson", "indigo", "olive", "red", "green"]
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=color_cycle_customized)
 color_cycle = color_cycle_customized
 
@@ -122,7 +120,11 @@ exp_viz = simplify_exp(exp_viz)
 exp_viz, exp_tag_common, exp_tag_common_diaplay, exp_tag_individual_display_list = add_exp_tag(exp_viz, exp_tag_common_diaplay, exp_tag_individual_display_list)
 exp_viz = add_result_paths(exp_viz, project_dir, intogen_dir)
 
-exp_viz
+# exp_viz
+
+# %%
+if len(color_cycle) < exp_viz.shape[0]:
+    warnings.warn("Object 'color_cycle' is not long enough for the experiments. Please add more colors.")
 
 # %% [markdown]
 # # Precision Recall Curve
