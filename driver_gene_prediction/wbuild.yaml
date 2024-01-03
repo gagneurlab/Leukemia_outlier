@@ -3,8 +3,8 @@ projectTitle: driver_prediction
 
 
 # Project path
-projectPath: /s/project/vale/driver_prediction_202312
-htmlOutputPath: /s/project/vale/driver_prediction_202312/Output/html
+projectPath: /s/project/vale/driver_prediction_202401
+htmlOutputPath: /s/project/vale/driver_prediction_202401/Output/html
 scriptsPath: Scripts
 fileRegex: .*
 tmpDirPath: .tmp
@@ -12,8 +12,8 @@ tmpDirPath: .tmp
 
 # sample annotation
 sampleAnnotation: /s/project/mll/sample_info/sample_annotation_for_drop.tsv
-experimentDesign: /s/project/vale/driver_prediction_202312/experiment_design.tsv
-manuscriptWording: /s/project/vale/driver_prediction_202312/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
+experimentDesign: /s/project/vale/driver_prediction_202401/experiment_design.tsv
+manuscriptWording: /s/project/vale/driver_prediction_202401/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
 
 # cancer gene list
 CGC_cancer_gene: /s/project/vale/Resource/Census_allMon_20221205_GRCh37_v97.tsv
@@ -34,13 +34,20 @@ fraserDir: /s/project/mll/drop_2023feb
 
 # absplice input
 abspliceDir: /s/project/mll/preprocess_202302/Somatic_Analysis_abSplice_gz
+abspliceDirNoHeader: /s/project/mll/preprocess_202302/Somatic_Analysis_abSplice
 
-# coess input
+# network input
 coess_modules: /s/project/mll/resource/coess_supplementary_data/coessential_modules.csv
 joint_embedding_1: /s/project/bayesRare/gene_data/AE_Embeddings/combinations/pca-gtex_pca-crispr_norm-stringnolit_norm-stringnolitverse_norm-proteinsmall.tsv
+emb_omics: /s/project/cancer_pred/data/embeddings/dtf_gtex_depMap_portT5_lunar-snowflake-239_3787637_embedding.tsv
+emb_pops: /s/project/cancer_pred/data/embeddings/pops_mat_d256.tsv
+emb_pops_exp: /s/project/cancer_pred/data/embeddings/pops_mat_exp_d256.tsv
+emb_string: /s/project/cancer_pred/data/embeddings/STRING_d128.tsv
+emb_string_exp: /s/project/cancer_pred/data/embeddings/STRING_EXP_d128.tsv
 
 # VEP resource
 predictedConsequence: /s/project/vale/Resource/ensembl_variation_calculated_variant_consequences.csv
+vep_path: /s/project/mll/preprocess_202302/vep/vep_combined
 
 # Input from MLL
 mll_panel_genes: /s/project/mll/rawdata/res_from_mll/20221207_panel_gene_MLL.txt
@@ -57,6 +64,7 @@ cnv_MLL_14744: /s/project/vale/Resource/res_stephan_mll/1943949.MLL_14744.denois
 cnv_MLL_29369: /s/project/vale/Resource/res_stephan_mll/3214490.MLL_29369.denoisedCR.tsv
 AML_enformer: /s/project/vale/Resource/res_sergey_vilov/OUTRIDER_results_AML_panel_Enformer_5k.tsv
 activation_enrichment_curation: /s/project/vale/Resource/res_sandra_mll/20230418_enrichment_to_curate.xlsx
+anonymization_table_mll: /s/project/vale/Resource/anonymization_table_mll.csv
 
 # manuscript
 total_counts_marc: /s/project/vale/drop_marc_lrp1b/processed_data/aberrant_expression/v33/outrider/HCL_combined/total_counts.Rds

@@ -33,9 +33,9 @@ if not os.path.isdir(config['projectPath'] + "/Output"):
         
 experimentDesign = pd.read_csv(config["experimentDesign"], sep='\t')
 experimentDesign = experimentDesign.fillna('')
-#experimentDesign = experimentDesign.loc[
-#    (np.isin(experimentDesign.model_method, ['rf']))
-#]
+experimentDesign = experimentDesign.loc[
+    (np.isin(experimentDesign.model_method, ['rf']))
+]
 
 
 sampleAnnotation = pd.read_csv(config["sampleAnnotation"], sep='\t')
@@ -121,10 +121,20 @@ rule generate_absplice_feature:
 rule generate_coess_feature:
     input:
         coess_modules=config['coess_modules'],
-        joint_embedding_1=config['joint_embedding_1']
+        joint_embedding_1=config['joint_embedding_1'],
+        emb_omics=config['emb_omics'],
+        emb_pops=config['emb_pops'],
+        emb_pops_exp=config['emb_pops_exp'],
+        emb_string=config['emb_string'],
+        emb_string_exp=config['emb_string_exp']
     output:
         coess_modules=config["projectPath"] + '/processed_data/coess_feature/coess_cluster-d0.9.tsv',
-        joint_embedding_1=config["projectPath"] + '/processed_data/coess_feature/joint_embedding_1.tsv'
+        joint_embedding_1=config["projectPath"] + '/processed_data/coess_feature/joint_embedding_1.tsv',
+        emb_omics=config["projectPath"] + '/processed_data/coess_feature/emb_omics.tsv',
+        emb_pops=config["projectPath"] + '/processed_data/coess_feature/emb_pops.tsv',
+        emb_pops_exp=config["projectPath"] + '/processed_data/coess_feature/emb_pops_exp.tsv',
+        emb_string=config["projectPath"] + '/processed_data/coess_feature/emb_string.tsv',
+        emb_string_exp=config["projectPath"] + '/processed_data/coess_feature/emb_string_exp.tsv'        
     params:
         projectPath=config['projectPath'],
         gencode=config['gencode']
@@ -139,7 +149,12 @@ rule merge_feature:
         intogen=config["projectPath"] + '/processed_data/intogen_feature/feature/cbase.tsv',
         absplice=config["projectPath"] + '/processed_data/absplice_feature/absplice.tsv',
         coess_modules=config["projectPath"] + '/processed_data/coess_feature/coess_cluster-d0.9.tsv',
-        joint_embedding_1=config["projectPath"] + '/processed_data/coess_feature/joint_embedding_1.tsv'
+        joint_embedding_1=config["projectPath"] + '/processed_data/coess_feature/joint_embedding_1.tsv',
+        emb_omics=config["projectPath"] + '/processed_data/coess_feature/emb_omics.tsv',
+        emb_pops=config["projectPath"] + '/processed_data/coess_feature/emb_pops.tsv',
+        emb_pops_exp=config["projectPath"] + '/processed_data/coess_feature/emb_pops_exp.tsv',
+        emb_string=config["projectPath"] + '/processed_data/coess_feature/emb_string.tsv',
+        emb_string_exp=config["projectPath"] + '/processed_data/coess_feature/emb_string_exp.tsv'   
     output:
         features_partial=config["projectPath"] + '/processed_data/features_partial.tsv',
         features_full=config["projectPath"] + '/processed_data/features_full.tsv'
@@ -213,6 +228,87 @@ rule postprocessing_done:
         rank_proportion=expand(config["projectPath"] + '/processed_results/post/rp_{exp_no}.tsv', exp_no=experimentDesign['experiment_no'])
     output:
         touch(config['tmpDirPath'] + "/postprocessing.done")
+        
+rule manuscript:
+    input:
+        rules.manuscript_abstract_R.output,
+        rules.manuscript_fusion_prep_R.output,
+        rules.manuscript_sv_prep_R.output,
+        rules.manuscript_figure_2_prep_or_R.output,
+        rules.manuscript_figure_2_prep_ac_R.output,
+        rules.manuscript_figure_2_R.output,
+        rules.manuscript_figure_3_prep_fr_R.output,
+        rules.manuscript_figure_3_R.output,
+        rules.manuscript_figure_4_R.output,
+        rules.manuscript_figure_5_prep_benchmark_R.output,
+        rules.manuscript_figure_5_R.output,
+        rules.manuscript_sup_table_prediction_tab_R.output,
+        rules.manuscript_sup_table_resource_tab_R.output,
+        rules.manuscript_sup_table_association_tab_R.output,
+        rules.manuscript_sup_table_tet2_tab_R.output,
+        rules.manuscript_sup_table_cd79a_tab_R.output,
+        rules.manuscript_sup_table_resource_tab_html_R.output
+    output:
+        touch(config['tmpDirPath'] + "/manuscript.done")
+        
+rule manuscript_figure_3_prep_absplice:
+    input:
+        absplice_res=config["projectPath"] + '/processed_data/absplice_res.tsv',
+        absplice_res_var=config["projectPath"] + '/processed_data/absplice_res_var.tsv'
+    output:
+        absplice=config["projectPath"] + '/manuscript/figure_3/plot_data/res_absplice.tsv',
+        absplice_var=config["projectPath"] + '/manuscript/figure_3/plot_data/res_absplice_var.tsv'
+    params:
+        projectPath = config["projectPath"],
+        cgc_cancer_gene_processed=rules.preprocessing_label_generate_label_list_R.output[0],
+        intogen_cancer_gene=config["IntOGen_cancer_gene"]
+    script: 
+        "Scripts/manuscript/figure_3_prep_absplice.py"
+
+rule manuscript_figure_4_prep_enrichment:
+    input:
+        ac_res=config["outriderDir"] + '/processed_results/aberrant_expression/' + config["geneAnnotation"] + '/outrider/' + config["cohort"]["single_group"][0] + '/res_filter_out.tsv',
+        or_res=config["outriderDir"] + '/processed_results/aberrant_expression/' + config["geneAnnotation"] + '/outrider/' + config["cohort"]["single_group"][0] + '/OUTRIDER_results.tsv',
+        fr_res=config["projectPath"] + '/processed_data/fr_res.tsv',
+        absplice_res=config["projectPath"] + '/processed_data/absplice_res.tsv'
+    output:
+        diag_fisher=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher.tsv'
+    params:
+        projectPath = config["projectPath"],
+        single_group=config['cohort']['single_group'],
+        samp_anno=config['sampleAnnotation'],
+        gencode=config['gencode'],
+        cgc_cancer_gene_processed=rules.preprocessing_label_generate_label_list_R.output[0],
+    script: 
+        "Scripts/manuscript/figure_4_prep_enrichment.py"
+        
+rule manuscript_figure_4_GSEA:
+    input:
+        diag_fisher=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher.tsv'
+    output:
+        diag_fisher_gsea=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher_gsea.tsv'
+    params:
+        projectPath = config["projectPath"],
+        gencode=config['gencode']
+    script: 
+        "Scripts/manuscript/figure_4_GSEA.py"
+        
+rule manuscript_figure_5_prep_prc:
+    input:
+        mll_benchmark=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark.tsv'
+    output:
+        mll_prc=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_prc.tsv',
+        mll_ap=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_ap.tsv',
+        mll_ap_full=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_ap_full.tsv',
+        mll_benchmark_prc=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark_prc.tsv',
+        mll_benchmark_ap=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark_ap.tsv'
+    params:
+        projectPath = config["projectPath"],
+        intogenDir = config["intogenDir"],
+        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
+        single_group = config["cohort"]["single_group"]
+    script: 
+        "Scripts/manuscript/figure_5_prep_prc.py"
         
 rule absplice_tab:
     input:
