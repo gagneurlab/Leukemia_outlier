@@ -37,8 +37,15 @@ gencode_path = snakemake.params.gencode
 intogen_dir = os.path.dirname(snakemake.input.intogen)
 outlier_dir = snakemake.params.outlierDir
 absplice_dir = os.path.dirname(snakemake.input.absplice)
+
 coess_modules_dir = os.path.dirname(snakemake.input.coess_modules)
 joint_embedding_1_path = snakemake.input.joint_embedding_1
+emb_omics_path = snakemake.input.emb_omics
+emb_pops_path = snakemake.input.emb_pops
+emb_pops_exp_path = snakemake.input.emb_pops_exp
+emb_string_path = snakemake.input.emb_string
+emb_string_exp_path = snakemake.input.emb_string_exp
+
 features_partial_path = snakemake.output.features_partial
 features_full_path = snakemake.output.features_full
 
@@ -58,8 +65,10 @@ gencode['gene_id'] = [i.split('.', 1)[0] for i in gencode.gene_id_unique]
 features = gencode[['gene_id', 'gene_name_orig']].drop_duplicates().rename(columns={'gene_name_orig':'geneSymbol'})
 # features
 
+# %% [markdown]
+# # intOGen
+
 # %%
-# intOGen
 print("")
 print("intOGen feature dimensions:")
 
@@ -79,8 +88,10 @@ for features_intogen_path in features_intogen_paths:
 # %%
 (features_intogen.fillna(0) != 0).any(axis=0).value_counts()-1
 
+# %% [markdown]
+# # abSplice
+
 # %%
-# abSplice
 print("")
 print("abSplice feature dimensions:")
 
@@ -100,8 +111,10 @@ for features_absplice_path in features_absplice_paths:
 # %%
 (features_absplice.fillna(0) != 0).any(axis=0).value_counts()-1
 
+# %% [markdown]
+# # outlier
+
 # %%
-# outlier
 print("")
 print("outlier feature dimensions:")
 
@@ -133,8 +146,10 @@ features_ac = features_outlier.loc[:, features_outlier.columns.str.contains('ac-
 features_fr = features_outlier.loc[:, features_outlier.columns.str.contains('fr-', regex=True)]
 (features_fr.fillna(0) != 0).any(axis=0).value_counts()
 
+# %% [markdown]
+# # Co-essentiality modules
+
 # %%
-# Co-essentiality modules
 print("")
 print("Co-essentiality module feature dimensions:")
 
@@ -157,15 +172,65 @@ for features_coess_modules_path in features_coess_modules_paths:
 # %%
 274+126+308+161+308+5224
 
+# %% [markdown]
+# # embedding
+
 # %%
-# Co-essentiality embedding 1
 print("")
-print("Co-essentiality embedding_1 feature dimensions:")
+print("joint_embedding_1 feature dimensions:")
     
 features_joint_embedding_1 = pd.read_csv(joint_embedding_1_path, sep="\t")
 print(features_joint_embedding_1.shape)
 
 # features_joint_embedding_1
+
+# %%
+print("")
+print("emb_omics feature dimensions:")
+    
+features_emb_omics = pd.read_csv(emb_omics_path, sep="\t")
+print(features_emb_omics.shape)
+
+# features_emb_omics
+
+# %%
+print("")
+print("emb_pops feature dimensions:")
+    
+features_emb_pops = pd.read_csv(emb_pops_path, sep="\t")
+print(features_emb_pops.shape)
+
+# features_emb_pops
+
+# %%
+print("")
+print("emb_pops_exp feature dimensions:")
+    
+features_emb_pops_exp = pd.read_csv(emb_pops_exp_path, sep="\t")
+print(features_emb_pops_exp.shape)
+
+# features_emb_pops_exp
+
+# %%
+print("")
+print("emb_string feature dimensions:")
+    
+features_emb_string = pd.read_csv(emb_string_path, sep="\t")
+print(features_emb_string.shape)
+
+# features_emb_string
+
+# %%
+print("")
+print("emb_string_exp feature dimensions:")
+    
+features_emb_string_exp = pd.read_csv(emb_string_exp_path, sep="\t")
+print(features_emb_string_exp.shape)
+
+# features_emb_string_exp
+
+# %% [markdown]
+# # merge
 
 # %%
 # rename columns
@@ -196,6 +261,11 @@ features_full_dic = {
     "outlier": features_outlier,
     "coess_cluster": features_coess_modules,
     "joint_embedding_1": features_joint_embedding_1,
+    "emb_omics": features_emb_omics,
+    "emb_pops": features_emb_pops,
+    "emb_pops_exp": features_emb_pops_exp,
+    "emb_string": features_emb_string,
+    "emb_string_exp": features_emb_string_exp
     }        
 
 # %%

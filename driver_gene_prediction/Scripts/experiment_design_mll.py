@@ -24,7 +24,7 @@ import itertools
 
 # %%
 # this path should be identical to the file `wbuild.yaml` variable `projectPath`  
-project_path =  "/s/project/vale/driver_prediction_202312" 
+project_path =  "/s/project/vale/driver_prediction_202401" 
 if not os.path.exists(project_path):
     os.mkdir(project_path)
 
@@ -122,9 +122,9 @@ label_gene_list = [
     "CGC_leukemia_OCG",
     "CGC_leukemia_TSG",
     "CGC_leukemia_gene",
-    # "CGC_cancer_OCG",
-    # "CGC_cancer_TSG",
-    # "CGC_cancer_gene",
+    "CGC_cancer_OCG",
+    "CGC_cancer_TSG",
+    "CGC_cancer_gene",
 #     "IntOGen_cancer_OCG",
 #     "IntOGen_cancer_TSG",
 #     "IntOGen_cancer_gene",
@@ -141,7 +141,7 @@ sample_group = [
 
 model_method = [
     "lr", "rf", 
-    # "xgb", "xgb_op"
+    "xgb", "xgb_op"
 ]
 
 # %% [markdown]
@@ -235,6 +235,51 @@ coess_input_feature = [""]
 #                         random_seed, solvers, penalty, max_iter, 
 #                         n_estimators, min_samples_split, max_depth, 
 #                         weight_true, weight_false, tree_method)
+
+# %% [markdown]
+# # add network
+
+# %%
+intogen_input_feature = [""]
+outlier_input_feature = [""]
+coess_input_feature = ["coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
+
+# %%
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
+
+# %%
+intogen_input_feature = [""]
+outlier_input_feature = [""]
+coess_input_feature = ["joint_embedding_1"]
+
+# %%
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
+
+# %% [markdown]
+# # add combined setup + network
+
+# %%
+intogen_input_feature = ["clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv"]
+outlier_input_feature = ["or,ac,absplice,fr"]
+coess_input_feature = ["coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
+
+# %%
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
 
 # %% [markdown]
 # # processing

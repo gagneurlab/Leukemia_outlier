@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.0
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python [conda env:anaconda-vale_202204]
 #     language: python
@@ -36,19 +36,26 @@ pickle.dump(snakemake, open(snakemake_path, "wb"))
 # %%
 coess_modules_path = snakemake.input.coess_modules
 joint_embedding_1_path = snakemake.input.joint_embedding_1
+emb_omics_path = snakemake.input.emb_omics
+emb_pops_path = snakemake.input.emb_pops
+emb_pops_exp_path = snakemake.input.emb_pops_exp
+emb_string_path = snakemake.input.emb_string
+emb_string_exp_path = snakemake.input.emb_string_exp
+
 gencode_path = snakemake.params.gencode
-out_dir = os.path.dirname(snakemake.output.coess_modules)
+                          
+coess_modules_out_path = snakemake.output.coess_modules
 joint_embedding_1_out_path = snakemake.output.joint_embedding_1
+emb_omics_out_path = snakemake.output.emb_omics
+emb_pops_out_path = snakemake.output.emb_pops
+emb_pops_exp_out_path = snakemake.output.emb_pops_exp
+emb_string_out_path = snakemake.output.emb_string
+emb_string_exp_out_path = snakemake.output.emb_string_exp
 
 # %%
 # coess_modules_path = "/s/project/tcga/driver_prediction_model/coess_cluster/coess_supplementary_data/coessential_modules.csv"
 # gencode_path = "/s/project/mll/drop_2020apr/processed_data/aberrant_expression/v33b/gene_name_mapping_v33b.tsv"
 # out_path = '/s/project/vale/driver_prediction_202204/processed_data/coess_feature'
-
-# %%
-# create output dir if not exist
-if not os.path.isdir(out_dir): 
-    os.mkdir(out_dir)
 
 # %%
 gencode = pd.read_csv(gencode_path)
@@ -72,7 +79,6 @@ d_range
 # %%
 for d in d_range:
     sub_df = coess_sup_df[coess_sup_df["d"] == d]
-    outPath = out_dir + f"/coess_cluster-d{d}.tsv"
 
     # Split for only the row where genes are
     index_split = sub_df.columns.tolist().index("Genes")
@@ -102,8 +108,8 @@ for d in d_range:
     out_df.columns = out_df.columns[:1].tolist() + [f'coess_cluster-d{d}-' + str(col) for col in out_df.columns[1:]]
     
     # Save df
-    print(f"Saving in {outPath}")
-    out_df.to_csv(outPath, sep='\t', index=False)
+    print(f"Saving in {coess_modules_out_path}")
+    out_df.to_csv(coess_modules_out_path, sep='\t', index=False)
     
     # Nr. unique genes per module
     print(f"d = {d}")
@@ -122,3 +128,71 @@ joint_embedding_1.to_csv(joint_embedding_1_out_path, sep="\t", index=False)
 
 print(f"Nr. unique genes: {len(joint_embedding_1)}")
 print(f"Nr. dimensions in: {len(joint_embedding_1.columns)-1} \n") 
+
+# %%
+joint_embedding_1
+
+# %% [markdown]
+# # emb_omics
+
+# %%
+emb_omics = pd.read_csv(emb_omics_path, sep="\t")
+emb_omics.columns = emb_omics.columns[:1].tolist() + [f'emb_omics-' + str(col) for col in emb_omics.columns[1:]]
+
+print(f"Saving in {emb_omics_out_path}")
+emb_omics.to_csv(emb_omics_out_path, sep="\t", index=False)
+
+print(f"Nr. unique genes: {len(emb_omics)}")
+print(f"Nr. dimensions in: {len(emb_omics.columns)-1} \n") 
+
+# %% [markdown]
+# # emb_pops
+
+# %%
+emb_pops = pd.read_csv(emb_pops_path, sep="\t")
+emb_pops.columns = emb_pops.columns[:1].tolist() + [f'emb_pops-' + str(col) for col in emb_pops.columns[1:]]
+
+print(f"Saving in {emb_pops_out_path}")
+emb_pops.to_csv(emb_pops_out_path, sep="\t", index=False)
+
+print(f"Nr. unique genes: {len(emb_pops)}")
+print(f"Nr. dimensions in: {len(emb_pops.columns)-1} \n") 
+
+# %% [markdown]
+# # emb_pops_exp
+
+# %%
+emb_pops_exp = pd.read_csv(emb_pops_exp_path, sep="\t")
+emb_pops_exp.columns = emb_pops_exp.columns[:1].tolist() + [f'emb_pops_exp-' + str(col) for col in emb_pops_exp.columns[1:]]
+
+print(f"Saving in {emb_pops_exp_out_path}")
+emb_pops_exp.to_csv(emb_pops_exp_out_path, sep="\t", index=False)
+
+print(f"Nr. unique genes: {len(emb_pops_exp)}")
+print(f"Nr. dimensions in: {len(emb_pops_exp.columns)-1} \n") 
+
+# %% [markdown]
+# # emb_string
+
+# %%
+emb_string = pd.read_csv(emb_string_path, sep="\t")
+emb_string.columns = emb_string.columns[:1].tolist() + [f'emb_string-' + str(col) for col in emb_string.columns[1:]]
+
+print(f"Saving in {emb_string_out_path}")
+emb_string.to_csv(emb_string_out_path, sep="\t", index=False)
+
+print(f"Nr. unique genes: {len(emb_string)}")
+print(f"Nr. dimensions in: {len(emb_string.columns)-1} \n") 
+
+# %% [markdown]
+# # emb_string_exp
+
+# %%
+emb_string_exp = pd.read_csv(emb_string_exp_path, sep="\t")
+emb_string_exp.columns = emb_string_exp.columns[:1].tolist() + [f'emb_string_exp-' + str(col) for col in emb_string_exp.columns[1:]]
+
+print(f"Saving in {emb_string_exp_out_path}")
+emb_string_exp.to_csv(emb_string_exp_out_path, sep="\t", index=False)
+
+print(f"Nr. unique genes: {len(emb_string_exp)}")
+print(f"Nr. dimensions in: {len(emb_string_exp.columns)-1} \n") 
