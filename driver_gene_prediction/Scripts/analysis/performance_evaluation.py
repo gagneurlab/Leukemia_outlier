@@ -47,7 +47,7 @@ from analysis_function import *
 
 # %%
 # read in snakemake object
-file = open("/s/project/vale/driver_prediction_published_202309/processed_data/snakemake/postprocessing.p",'rb')
+file = open("/s/project/vale/driver_prediction_202401/processed_data/snakemake/postprocessing.p",'rb')
 snakemake = pickle.load(file)
 
 # %%
@@ -67,8 +67,10 @@ label_gene_list = 'CGC_leukemia_gene'
 sample_group = 'leukemia_14group'
 model_method = 'rf'
 intogen_input_feature = ['clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv', '']
-outlier_input_feature = ['absplice','fr', 'or,ac', 'or,ac,absplice,fr', 'or,ac,fr']
-coess_input_feature = ['']
+# outlier_input_feature = ['absplice','fr', 'or,ac', 'or,ac,absplice,fr', 'or,ac,fr']
+outlier_input_feature = ['or,ac,absplice,fr']
+coess_input_feature = ['', "coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
+
 plot_sub_dir = 'test'
 
 save_plot = True
