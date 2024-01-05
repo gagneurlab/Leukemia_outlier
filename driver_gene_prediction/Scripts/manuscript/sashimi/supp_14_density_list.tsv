@@ -1,0 +1,7 @@
+#filepath	file_category	label	color
+/s/project/mll/rawdata/wgs_bam/MLL_60467.CD79A.bam	bam	genom_MZL_3758	gray
+/s/project/mll/rawdata/alignments/MLL_60467-M004.alignments.bam	bam MZL_3758       #D95F02
+/s/project/mll/rawdata/wgs_bam/MLL_22178.CD79A.bam      bam     genom_LPL_0664 gray
+/s/project/mll/rawdata/alignments/MLL_22178-M031.alignments.bam	bam LPL_0664       #D95F02
+/s/project/mll/rawdata/wgs_bam/MLL_58274.CD79A.bam      bam     genom_MCL_1229 gray
+/s/project/mll/rawdata/alignments/MLL_58274-M017.alignments.bam	bam MCL_1229       #1B9E77

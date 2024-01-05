@@ -1,0 +1,6 @@
+#filepath	file_category	label	color
+/s/project/mll/rawdata/wgs_bam/MLL_19282.RB1.bam	bam	Genome_B-NHL_1747	gray
+/s/project/mll/rawdata/alignments/MLL_19282-M015.alignments.bam	bam	B-NHL_1747	#D95F02
+/s/project/mll/rawdata/wgs_bam/MLL_14485.RB1.bam	bam	Genome_HGBL_0805	gray
+/s/project/mll/rawdata/alignments/MLL_14485-M092.alignments.bam	bam	HGBL_0805	#1B9E77
+

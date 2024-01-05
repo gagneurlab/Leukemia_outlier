@@ -1,0 +1,4 @@
+#filepath	file_category	label	color
+/s/project/mll/rawdata/alignments/MLL_60467-M004.alignments.bam	bam MZL_3758       #D95F02
+/s/project/mll/rawdata/alignments/MLL_22178-M031.alignments.bam	bam LPL_0664       #D95F02
+/s/project/mll/rawdata/alignments/MLL_58274-M017.alignments.bam	bam MCL_1229       #1B9E77
