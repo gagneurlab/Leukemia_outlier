@@ -135,6 +135,14 @@ for random_round in range(random_seeds):
             predictions_test, coeff_df_sub = run_xgboost_optimized(features_model, labels,
                                                                    train_index_num, test_index_num,
                                                                    tree_method, random_round)
+        
+        if model_method == "nn":
+            coeff_df_sub = coeff_df
+            predictions_test = run_nn(features_model, labels,
+                                                            train_index_num, test_index_num,random_round, 
+                                                            epochs = 400, lr = 0.0001,
+                                                            input_dim = features_model.shape[1],
+                                                            hidden_dim = [512, 512])
             
         # concat predictioins and coeff_df
         predictions[test_index_num] = predictions_test

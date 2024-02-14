@@ -93,6 +93,7 @@ fr_res_junc[, junction_id := paste0("Intron ", seqnames, ": ",
 # read in vep 
 for (x in snakemake@input$vepRes) {
   vep_res_temp <- fread(x)
+  vep_res_temp <- vep_res_temp %>% unique()
   vep_res_temp <- merge(vep_res_temp, gencode[, .(gene_name, gene_type)], 
                         by.x='SYMBOL', by.y='gene_name', all.x=TRUE, all.y=FALSE)
   vep_res_temp <- vep_res_temp[gene_type=='protein_coding', ]

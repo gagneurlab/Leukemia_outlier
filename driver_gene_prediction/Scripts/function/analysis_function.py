@@ -50,14 +50,34 @@ def add_exp_tag(exp_viz, exp_tag_common_diaplay, exp_tag_individual_display_list
     return exp_viz, exp_tag_common, exp_tag_common_diaplay, exp_tag_individual_display_list
 
 
-def add_result_paths(exp_viz, project_dir, intogen_dir):
-    exp_viz = exp_viz.assign(res_pre_path = exp_viz.apply(lambda x: project_dir + '/processed_results/pre/result_' + str(x['experiment_no']) + '.tsv', axis=1))
-    exp_viz = exp_viz.assign(coeff_path = exp_viz.apply(lambda x: project_dir + '/processed_results/pre/coeff_' + str(x['experiment_no']) + '.tsv', axis=1))
-    exp_viz = exp_viz.assign(res_post_path = exp_viz.apply(lambda x: project_dir + '/processed_results/post/result_' + str(x['experiment_no']) + '.tsv', axis=1))
-    exp_viz = exp_viz.assign(rp_path = exp_viz.apply(lambda x: project_dir + '/processed_results/post/rp_' + str(x['experiment_no']) + '.tsv', axis=1))
-    exp_viz = exp_viz.assign(vep_path = exp_viz.apply(lambda x: intogen_dir + '/steps/vep/MLL_WGS_MLL_' + str(x['sample_group']).upper() + '.tsv.gz', axis=1))
-    exp_viz = exp_viz.assign(dndscv_path = exp_viz.apply(lambda x: intogen_dir + '/steps/dndscv/MLL_WGS_MLL_' + str(x['sample_group']).upper() + '.dndscv.tsv.gz', axis=1))
+def add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir):
 
+    exp_viz = exp_viz.assign(res_pre_path = exp_viz.apply(lambda x:
+                                                          project_dir + '/processed_results/pre_lr_rf_xbg/result_' + str(x['experiment_no']) + '.tsv', axis=1))
+    exp_viz = exp_viz.assign(coeff_path = exp_viz.apply(lambda x:
+                                                        project_dir + '/processed_results/pre_lr_rf_xbg/coeff_' + str(x['experiment_no']) + '.tsv', axis=1))
+    exp_viz = exp_viz.assign(res_post_path = exp_viz.apply(lambda x:
+                                                           project_dir + '/processed_results/post_lr_rf_xbg/result_' + str(x['experiment_no']) + '.tsv', axis=1))
+    exp_viz = exp_viz.assign(rp_path = exp_viz.apply(lambda x:
+                                                     project_dir + '/processed_results/post_lr_rf_xbg/rp_' + str(x['experiment_no']) + '.tsv', axis=1))
+    
+    if exp_viz.model_method.str.contains('nn').sum() > 0:
+        exp_viz.loc[exp_viz.model_method=='nn'] = exp_viz.loc[exp_viz.model_method=='nn'].assign(res_pre_path = 
+                                                                                                 exp_viz[exp_viz.model_method=='nn'].apply(lambda x: 
+                                                              project_dir + '/processed_results/pre_nn/result_' + str(x['experiment_no']) + '.tsv', axis=1), )
+        exp_viz.loc[exp_viz.model_method=='nn'] = exp_viz.loc[exp_viz.model_method=='nn'].assign(coeff_path = 
+                                                                                                 exp_viz[exp_viz.model_method=='nn'].apply(lambda x: 
+                                                              project_dir + '/processed_results/pre_nn/coeff_' + str(x['experiment_no']) + '.tsv', axis=1), )
+        exp_viz.loc[exp_viz.model_method=='nn'] = exp_viz.loc[exp_viz.model_method=='nn'].assign(res_post_path = 
+                                                                                                 exp_viz[exp_viz.model_method=='nn'].apply(lambda x: 
+                                                              project_dir + '/processed_results/post_nn/result_' + str(x['experiment_no']) + '.tsv', axis=1), )
+        exp_viz.loc[exp_viz.model_method=='nn'] = exp_viz.loc[exp_viz.model_method=='nn'].assign(rp_path = 
+                                                                                                 exp_viz[exp_viz.model_method=='nn'].apply(lambda x: 
+                                                              project_dir + '/processed_results/post_nn/rp_' + str(x['experiment_no']) + '.tsv', axis=1), )
+    
+    exp_viz = exp_viz.assign(vep_path = exp_viz.apply(lambda x: vep_dir + '/MLL_' + str(x['sample_group']).upper() + '.vep.tsv.gz', axis=1))
+    exp_viz = exp_viz.assign(dndscv_path = exp_viz.apply(lambda x: intogen_dir + '/steps/dndscv/MLL_WGS_MLL_' + str(x['sample_group']).upper() + '.dndscv.tsv.gz', axis=1))
+    
     return exp_viz
 
 def set_role(data, distance_threshold=0.1):

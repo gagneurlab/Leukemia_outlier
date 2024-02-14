@@ -59,9 +59,19 @@
 #'                    "/manuscript/figure_3/plot_data/vep_res_abSplice"`'
 #'    - vep_full: '`sm config["projectPath"] + 
 #'                    "/manuscript/figure_3/plot_data/vep_full.tsv"`'
+#'    - prop_mutation_fr: '`sm config["projectPath"] + 
+#'                    "/manuscript/figure_2/plot_data/anova/prop_mutation_fr.csv"`'
+#'    - fr_mut_en: '`sm config["projectPath"] + 
+#'                    "/manuscript/figure_3/plot_data/fr_mut_en.csv"`'
 #'  output:
 #'    - cd79a_tab_raw: '`sm config["projectPath"] + 
 #'                     "/manuscript/sup_table/cd79a_tab_raw.csv"`'
+#'    - figure_3a: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_3a.csv"`'
+#'    - figure_3b: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_3b.csv"`'
+#'    - figure_3d: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_3d.csv"`'
 #'    - wBhtml: '`sm config["htmlOutputPath"] + "/manuscript/figure_3.html"`'
 #'  type: noindex
 #'  resources:
@@ -75,7 +85,7 @@
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
                              "/processed_data/snakemake/figure_3.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202304/processed_data/snakemake/figure_3.snakemake")
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202402/processed_data/snakemake/figure_3.snakemake")
 print("Snakemake saved") 
 
 .libPaths("~/R/4.1/FRASER2")
@@ -154,6 +164,7 @@ absplice_res <- fread(snakemake@input$abspliceRes)
 absplice_res[, samp_symbol := paste0(sampleID, "-", gene_name)]
 absplice_res <- separate(absplice_res, col='variant', into=c('chr', 'pos', 'ref_alt'), sep=":", remove = FALSE)
 absplice_res <- separate(absplice_res, col='ref_alt', into=c('ref', 'alt'), sep=">") %>% as.data.table()
+absplice_res_sig <- absplice_res[AbSplice_DNA >= 0.2, ]
 
 absplice_res_var <- fread(snakemake@input$abspliceResVar)
 absplice_res_var[, samp_symbol := paste0(sampleID, "-", gene_name)]
@@ -196,6 +207,7 @@ fr_res_junc[, junction_id := paste0("Intron ", seqnames, ": ",
 vep_splice <- fread(snakemake@input$vep_splice)
 vep_res_abSplice <- fread(snakemake@input$vep_res_abSplice)
 vep_lym <- fread(grep('Lym_group', snakemake@input$vepRes, value = TRUE))
+vep_lym <- vep_lym %>% unique()
 vep_lym <- vep_lym %>% separate('#Uploaded_variation', 
                                 c("col1", "array_id", "alt", "ref", "pos"), 
                                 sep='__', remove = FALSE) %>% as.data.table()
@@ -259,6 +271,18 @@ fr_all_en <- data.table(
     fisher_test(fr_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$estimate,
     fisher_test(fr_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(fr_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(fr_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(fr_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$p.value,
     fisher_test(fr_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$p.value,
@@ -297,6 +321,18 @@ fr_top3_en <- data.table(
     fisher_test(fr_top3_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$estimate,
     fisher_test(fr_top3_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(fr_top3_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_top3_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_top3_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1],
+    fisher_test(fr_top3_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(fr_top3_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_top3_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_top3_gene_2, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2],
+    fisher_test(fr_top3_gene_5, exp_gene_fr, leu_tsg[, GeneSymbol])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(fr_top3_gene_0, exp_gene_fr, leu_tsg[, GeneSymbol])$p.value,
     fisher_test(fr_top3_gene_1, exp_gene_fr, leu_tsg[, GeneSymbol])$p.value,
@@ -315,7 +351,7 @@ fr_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "\u22655")
 fr_top3_en[, cutoff := 'At most three']
 
 fr_en <- rbind(fr_all_en, fr_top3_en)
-fr_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(fr_en)]
+fr_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(fr_en))]
 fr_en[total < 1000, total_label := as.character(total)]
 fr_en[category=='0', total_pos := 1]
 fr_en[category=='1', total_pos := 2]
@@ -324,11 +360,17 @@ fr_en[category=="\u22655", total_pos := 4]
 fr_en[cutoff=='All', total_pos := total_pos-0.2]
 fr_en[cutoff=='At most three', total_pos := total_pos+0.2]
 
-signif_height_a <- 17
-total_height_a <- 35
+fr_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+fr_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+fr_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+
+signif_height_a <- 25
+total_height_a <- 50
 
 p_a_raw <- ggplot(fr_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
   geom_text(data = fr_en[cutoff=='All'], aes(y=signif_height_a, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
   geom_text(data = fr_en[cutoff=='At most three'], aes(y=signif_height_a, label = p_val.signif), 
@@ -341,7 +383,7 @@ p_a_raw <- ggplot(fr_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
     breaks = c(0.1, 0.3, 1, 3, 10),
     minor_breaks = c(c(1:9)/10, c(1:10))
   ) +
-  coord_cartesian(ylim=c(0.1, 20), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.1, 30), xlim=c(1, 4), clip="off")
 
 # p_a_raw
 
@@ -360,6 +402,18 @@ p_a <- p_a_raw +
   )
 
 # p_a
+
+figure_3a_dt <- data.table(exp_gene_fr = exp_gene_fr)
+figure_3a_dt[, fr_gene_0 := exp_gene_fr %in% fr_gene_0]
+figure_3a_dt[, fr_gene_1 := exp_gene_fr %in% fr_gene_1]
+figure_3a_dt[, fr_gene_2 := exp_gene_fr %in% fr_gene_2]
+figure_3a_dt[, fr_gene_5 := exp_gene_fr %in% fr_gene_5]
+figure_3a_dt[, fr_top3_gene_0 := exp_gene_fr %in% fr_top3_gene_0]
+figure_3a_dt[, fr_top3_gene_1 := exp_gene_fr %in% fr_top3_gene_1]
+figure_3a_dt[, fr_top3_gene_2 := exp_gene_fr %in% fr_top3_gene_2]
+figure_3a_dt[, fr_top3_gene_5 := exp_gene_fr %in% fr_top3_gene_5]
+
+fwrite(figure_3a_dt, snakemake@output$figure_3a)
 
 
 
@@ -406,6 +460,18 @@ absplice_all_en <- data.table(
     fisher_test(absplice_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(absplice_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(absplice_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(absplice_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(absplice_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
     fisher_test(absplice_gene_1, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -444,6 +510,18 @@ absplice_top3_en <- data.table(
     fisher_test(absplice_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(absplice_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(absplice_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(absplice_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(absplice_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
     fisher_test(absplice_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -462,7 +540,7 @@ absplice_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "\u2
 absplice_top3_en[, cutoff := 'At most three']
 
 absplice_en <- rbind(absplice_all_en, absplice_top3_en)
-absplice_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(absplice_en)]
+absplice_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(absplice_en))]
 absplice_en[total < 1000, total_label := as.character(total)]
 absplice_en[category=='0', total_pos := 1]
 absplice_en[category=='1', total_pos := 2]
@@ -471,11 +549,17 @@ absplice_en[category=="\u22655", total_pos := 4]
 absplice_en[cutoff=='All', total_pos := total_pos-0.2]
 absplice_en[cutoff=='At most three', total_pos := total_pos+0.2]
 
-signif_height_b <- 17
-total_height_b <- 35
+absplice_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+absplice_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+absplice_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+
+signif_height_b <- 30
+total_height_b <- 60
 
 p_b_raw <- ggplot(absplice_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
   geom_text(data = absplice_en[cutoff=='All'], aes(y=signif_height_b, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
   geom_text(data = absplice_en[cutoff=='At most three'], aes(y=signif_height_b, label = p_val.signif), 
@@ -487,7 +571,7 @@ p_b_raw <- ggplot(absplice_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
     breaks = c(0.1, 0.3, 1, 3, 10),
     minor_breaks = c(c(1:9)/10, c(1:10))
   ) +
-  coord_cartesian(ylim=c(0.1, 20), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.1, 35), xlim=c(1, 4), clip="off")
 
 # p_b_raw
 
@@ -506,6 +590,175 @@ p_b <- p_b_raw +
   )
 
 # p_b
+
+figure_3b_dt <- data.table(exp_gene = exp_gene)
+figure_3b_dt[, absplice_gene_0 := exp_gene %in% absplice_gene_0]
+figure_3b_dt[, absplice_gene_1 := exp_gene %in% absplice_gene_1]
+figure_3b_dt[, absplice_gene_2 := exp_gene %in% absplice_gene_2]
+figure_3b_dt[, absplice_gene_5 := exp_gene %in% absplice_gene_5]
+figure_3b_dt[, absplice_top3_gene_0 := exp_gene %in% absplice_top3_gene_0]
+figure_3b_dt[, absplice_top3_gene_1 := exp_gene %in% absplice_top3_gene_1]
+figure_3b_dt[, absplice_top3_gene_2 := exp_gene %in% absplice_top3_gene_2]
+figure_3b_dt[, absplice_top3_gene_5 := exp_gene %in% absplice_top3_gene_5]
+
+fwrite(figure_3b_dt, snakemake@output$figure_3b)
+
+
+
+
+#### s8 s9. validated by mutation #####
+prop_mutation_fr <- fread(snakemake@input$prop_mutation_fr)
+
+prop_mutation_fr[, Category := factor(Category, levels = rev(c('Splicing outlier', 'None outlier')))]
+prop_mutation_fr[, mutation_type := factor(mutation_type, 
+                                           levels = rev(c(
+                                             "copy_number_loss",   
+                                             "copy_number_gain",
+                                             "structural_variant",
+                                             
+                                             "promoter_variant",
+                                             "frameshift_variant",
+                                             "stop_gained",
+                                             
+                                             "absplice_vep",
+                                             "vep_only",
+                                             "absplice_only",
+                                             
+                                             "multiple_type", 
+                                             "none"
+                                           )),
+                                           labels = rev(c(
+                                             "Copy number loss",   
+                                             "Copy number gain",
+                                             "Structural",
+                                             
+                                             "Promoter (TSS±2Kbp)",
+                                             "VEP frameshift",
+                                             "VEP stop-gained",
+                                             
+                                             "AbSplice and VEP splice-related",
+                                             "VEP splice-related exclusive",
+                                             "AbSplice exclusive",
+                                             
+                                             "Multiple",
+                                             "None"
+                                           )))]
+
+p_s8_raw <- ggplot(prop_mutation_fr, aes(x=Category, y=Percentage, fill=mutation_type)) + 
+  geom_bar(stat="identity",position = "stack")
+# p_s8_raw
+
+p_s8 <- p_s8_raw +
+  scale_y_continuous(labels = function(x) paste0(x*100, "%"), limits = c(0,1), breaks = c(0:10)/10) +
+  scale_fill_manual(values=rev(c(
+    RColorBrewer::brewer.pal(8, "YlOrRd")[c(8,6,4)],
+    RColorBrewer::brewer.pal(8, "YlGnBu")[c(2,6,8,3,4,5)],
+    RColorBrewer::brewer.pal(8, "BuPu")[c(7)],
+    'lightgrey'
+  )), name='Mutation type',  guide = guide_legend(reverse = TRUE)) +
+  xlab('') +
+  theme_vale +
+  coord_flip()
+
+# p_s8
+
+p_s9_raw <- ggplot(prop_mutation_fr[mutation_type != 'none'], aes(x=Category, y=Percentage, fill=mutation_type)) + 
+  geom_bar(stat="identity",position = "stack")
+# p_s9_raw
+
+p_s9 <- p_s9_raw +
+  scale_y_continuous(labels = function(x) paste0(x*100, "%"), limits = c(0,0.2), breaks = c(0:10)/10) +
+  scale_fill_manual(values=rev(c(
+    RColorBrewer::brewer.pal(8, "YlOrRd")[c(8,6,4)],
+    RColorBrewer::brewer.pal(8, "YlGnBu")[c(2,6,8,3,4,5)],
+    RColorBrewer::brewer.pal(8, "BuPu")[c(7)]
+  )), name='Mutation type',  guide = guide_legend(reverse = TRUE)) +
+  xlab('') +
+  theme_vale +
+  coord_flip()
+
+# p_s9
+
+
+
+
+#### s10. validated by mutaiton ####
+fr_mut_en <- fread(snakemake@input$fr_mut_en)
+fr_mut_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(fr_mut_en))]
+fr_mut_en[total < 1000, total_label := as.character(total)]
+fr_mut_en <- add_significance(fr_mut_en, "p_val")
+
+fr_mut_en[, total_pos := 0]
+fr_mut_en[mutation_type=='promoter_variant', total_pos := 1]
+fr_mut_en[mutation_type=='structural_variant', total_pos := 2]
+fr_mut_en[mutation_type=='splice_related_variant', total_pos := 3]
+fr_mut_en[mutation_type=="absplice_variant", total_pos := 4]
+fr_mut_en[mutation_type=="copy_number_gain", total_pos := 5]
+fr_mut_en[mutation_type=="copy_number_loss", total_pos := 6]
+fr_mut_en[mutation_type=="frameshift_variant", total_pos := 7]
+fr_mut_en[mutation_type=="stop_gained", total_pos := 8]
+fr_mut_en[cutoff=='All', total_pos := total_pos-0.2]
+fr_mut_en[cutoff=='At most three', total_pos := total_pos+0.2]
+
+fr_mut_en[, mutation_type := factor(mutation_type, 
+                                    levels = c(
+                                      "promoter_variant",
+                                      "structural_variant",
+                                      "splice_related_variant",
+                                      "absplice_variant",
+                                      "copy_number_gain",
+                                      "copy_number_loss",   
+                                      "frameshift_variant",
+                                      "stop_gained"
+                                    ),
+                                    labels = c(
+                                      "Promoter (TSS±2Kbp)",
+                                      "Structural",
+                                      "VEP splice-related",
+                                      "AbSplice",
+                                      "Copy number gain",
+                                      "Copy number loss",   
+                                      "VEP frameshift",
+                                      "VEP stop-gained"
+                                    ))]
+
+signif_height_b <- 1700
+total_height_b <- 4000
+
+p_s10_raw <- ggplot(fr_mut_en, aes(x=mutation_type, y=odds_ratio, fill = cutoff)) +
+  geom_bar(stat="identity", position="dodge", width=0.7) +
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
+  geom_text(data = fr_mut_en[cutoff=='All'], aes(y=signif_height_b, label = p_val.signif),
+            stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
+  geom_text(data = fr_mut_en[cutoff=='At most three'], aes(y=signif_height_b, label = p_val.signif),
+            stat = "identity", nudge_x = 0.18, nudge_y = 0.05, size = 3) +
+  geom_hline(yintercept=1, linetype="dashed", color = "firebrick") +
+  annotate("text", x=fr_mut_en[, total_pos], y=total_height_b, label=fr_mut_en[, total_label], size = 3) +
+  annotate("text", x=0.25, y=total_height_b, label='n =', size = 3) +
+  scale_y_log10(
+    breaks = c(1, 3, 10, 30, 100, 300, 1000, 3000)
+  ) +
+  coord_cartesian(ylim=c(1, 2000), xlim=c(1, 8), clip="off")
+
+# p_s10_raw
+
+p_s10 <- p_s10_raw +
+  xlab('Mutation type') +
+  ylab('Enrichment\nfor specific mutations (Odds ratio)') +
+  scale_fill_manual(values=c('lightgrey', 'darkgrey')) +
+  guides(fill=guide_legend('Splicing outliers (FRASER)', 
+                           title.position = "left", reverse = TRUE)) + 
+  theme_vale + 
+  theme(
+    legend.position = c(0.5, 1.25),
+    legend.direction = "vertical",
+    plot.margin = margin(67, 14, 14, 20, "points"), 
+    panel.border = element_rect(colour = "black", fill=NA, linewidth=0.2),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+  )
+
+# p_s10
 
 
 
@@ -538,6 +791,18 @@ absplice_fr_all_en <- data.table(
     fisher_test(absplice_fr_gene_1, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(absplice_fr_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(absplice_fr_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
+  ),
+  odds_ratio_ci_low = c(
+    fisher_test(absplice_fr_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(absplice_fr_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
   ),
   p_val = c(
     fisher_test(absplice_fr_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -577,6 +842,18 @@ absplice_fr_top3_en <- data.table(
     fisher_test(absplice_fr_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(absplice_fr_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(absplice_fr_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(absplice_fr_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(absplice_fr_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(absplice_fr_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(absplice_fr_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
     fisher_test(absplice_fr_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -595,7 +872,7 @@ absplice_fr_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "
 absplice_fr_top3_en[, cutoff := 'At most three']
 
 absplice_fr_en <- rbind(absplice_fr_all_en, absplice_fr_top3_en)
-absplice_fr_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(absplice_fr_en)]
+absplice_fr_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(absplice_fr_en))]
 absplice_fr_en[total < 1000, total_label := as.character(total)]
 absplice_fr_en[category=='0', total_pos := 1]
 absplice_fr_en[category=='1', total_pos := 2]
@@ -604,11 +881,17 @@ absplice_fr_en[category=="\u22655", total_pos := 4]
 absplice_fr_en[cutoff=='All', total_pos := total_pos-0.2]
 absplice_fr_en[cutoff=='At most three', total_pos := total_pos+0.2]
 
-signif_height_i <- 150
-total_height_i <- 350
+absplice_fr_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+absplice_fr_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+absplice_fr_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+
+signif_height_i <- 400
+total_height_i <- 1000
 
 p_i_raw <- ggplot(absplice_fr_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
   geom_text(data = absplice_fr_en[cutoff=='All'], aes(y=signif_height_i, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
   geom_text(data = absplice_fr_en[cutoff=='At most three'], aes(y=signif_height_i, label = p_val.signif), 
@@ -621,7 +904,7 @@ p_i_raw <- ggplot(absplice_fr_en, aes(x=category, y=odds_ratio, fill = cutoff)) 
     breaks = c(0.1, 1, 10, 100),
     minor_breaks = c(rep(1:9, 3)*(10^rep(0:2, each = 9))/10)
   ) +
-  coord_cartesian(ylim=c(0.1, 170), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.1, 470), xlim=c(1, 4), clip="off")
 
 # p_i_raw
 
@@ -641,6 +924,18 @@ p_i <- p_i_raw +
   )
 
 # p_i
+
+figure_3d_dt <- data.table(exp_gene = exp_gene)
+figure_3d_dt[, absplice_fr_gene_0 := exp_gene %in% absplice_fr_gene_0]
+figure_3d_dt[, absplice_fr_gene_1 := exp_gene %in% absplice_fr_gene_1]
+figure_3d_dt[, absplice_fr_gene_2 := exp_gene %in% absplice_fr_gene_2]
+figure_3d_dt[, absplice_fr_gene_5 := exp_gene %in% absplice_fr_gene_5]
+figure_3d_dt[, absplice_fr_top3_gene_0 := exp_gene %in% absplice_fr_top3_gene_0]
+figure_3d_dt[, absplice_fr_top3_gene_1 := exp_gene %in% absplice_fr_top3_gene_1]
+figure_3d_dt[, absplice_fr_top3_gene_2 := exp_gene %in% absplice_fr_top3_gene_2]
+figure_3d_dt[, absplice_fr_top3_gene_5 := exp_gene %in% absplice_fr_top3_gene_5]
+
+fwrite(figure_3d_dt, snakemake@output$figure_3d)
 
 
 
@@ -841,9 +1136,9 @@ absplice_not_in_vep[, pos := as.numeric(pos)]
 
 absplice_not_in_vep <- merge(absplice_not_in_vep, fr_res_junc, by='samp_symbol')         
 
-absplice_not_in_vep[, min_abs_dist := min(abs(pos-start), abs(pos-end)), by=rownames(absplice_not_in_vep)]
-absplice_not_in_vep[, dist_pos_start := pos-start, by=rownames(absplice_not_in_vep)]
-absplice_not_in_vep[, dist_pos_end := pos-end, by=rownames(absplice_not_in_vep)]
+absplice_not_in_vep[, min_abs_dist := min(abs(pos-start), abs(pos-end)), by=list(rownames(absplice_not_in_vep))]
+absplice_not_in_vep[, dist_pos_start := pos-start, by=list(rownames(absplice_not_in_vep))]
+absplice_not_in_vep[, dist_pos_end := pos-end, by=list(rownames(absplice_not_in_vep))]
 absplice_not_in_vep[, .(variant, junction_id, min_abs_dist)]      
 hist(absplice_not_in_vep[, min_abs_dist], 100)
 
@@ -1574,6 +1869,38 @@ p_s7 <- p_s7_raw +
   theme_vale 
 
 p_s7
+
+
+
+#### s8. upserR ####
+#' ### s8 raw
+#+ plot s8 raw, fig.width=12, fig.height=4
+p_s8_raw
+
+#' ### s8 annotated
+#+ plot s8, fig.width=12, fig.height=4
+p_s8
+
+
+#### s9. upserR ####
+#' ### s9 raw
+#+ plot s9 raw, fig.width=12, fig.height=4
+p_s9_raw
+
+#' ### s9 annotated
+#+ plot s9, fig.width=12, fig.height=4
+p_s9
+
+
+
+#### s10. upserR ####
+#' ### s10 raw
+#+ plot s10 raw, fig.width=12, fig.height=8
+p_s10_raw
+
+#' ### s10 annotated
+#+ plot s10, fig.width=12, fig.height=8
+p_s10
 
 
 

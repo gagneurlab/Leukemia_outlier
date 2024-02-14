@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.0
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python [conda env:anaconda-vale_202204]
 #     language: python
@@ -43,7 +43,7 @@ snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/postp
 pickle.dump(snakemake, open(snakemake_path, "wb"))
 
 # %%
-# file = open("/s/project/vale/driver_prediction_202207/processed_data/snakemake/postprocessing.p",'rb')
+# file = open("/s/project/vale/driver_prediction_202401/processed_data/snakemake/postprocessing.p",'rb')
 # snakemake = pickle.load(file)
 
 # %%
@@ -61,9 +61,9 @@ cgc_cancer_gene_path = snakemake.params.cgc_cancer_gene_processed
 intogen_cancer_gene_path = snakemake.params.intogen_cancer_gene
 
 # %%
-# experiment_no = 1931
+# experiment_no = 27715
 
-# %% tags=[]
+# %%
 cgc_cancer_gene = pd.read_csv(cgc_cancer_gene_path, sep='\t')
 cgc_leukemia_gene = cgc_cancer_gene[["L" in x for x in cgc_cancer_gene['TissueType']]]
 cgc_AML_gene = cgc_cancer_gene[["AML" in str(x) for x in cgc_cancer_gene['TumourTypes(Somatic)']]]
@@ -99,8 +99,11 @@ res_info = add_cancer_driver_info(res_info, cgc_cancer_gene, cgc_leukemia_gene, 
 # res_info
 
 # %%
-# remove coess only predictions: set prediction of pure coess gene to 0
+# add post score
 res_info = add_prediction_rank_post(res_info, intogen_input_feature, outlier_input_feature, coess_input_feature, features_post)
+
+res_info['Prediction_post'] = res_info['Prediction']
+res_info['Rank_post'] = res_info['Rank']
 
 # res_info
 

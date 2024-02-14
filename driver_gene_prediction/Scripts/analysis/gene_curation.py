@@ -41,7 +41,7 @@ from analysis_function import *
 
 # %%
 # read in snakemake object
-file = open("/s/project/vale/driver_prediction_published_202309/processed_data/snakemake/postprocessing.p",'rb')
+file = open("/s/project/vale/driver_prediction_202401/processed_data/snakemake/postprocessing.p",'rb')
 snakemake = pickle.load(file)
 
 # %%
@@ -79,12 +79,12 @@ intogen_summary = pd.merge(
 # # define result to curate
 
 # %%
-label_gene_list = 'CGC_leukemia_gene'
+label_gene_list = 'MLL_CGC_leukemia_gene'
 sample_group = 'leukemia_14group'
 model_method = 'rf'
 intogen_input_feature = 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv'
 outlier_input_feature = 'or,ac,absplice,fr'
-coess_input_feature = ''
+coess_input_feature = 'emb_string_exp'
 
 # %%
 # read in exp
@@ -270,7 +270,7 @@ features_full = pd.read_csv(features_full_path, sep='\t')
 # ## define gene
 
 # %%
-gene_to_curate = "AFF3"
+gene_to_curate = "RUNX1"
 
 # %% [markdown]
 # ## raw feature
@@ -284,6 +284,96 @@ features_curate
 feature_to_check_regex = 'or-leu|ac-leu'
 
 features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+
+# %%
+feature_to_check_regex = 'or-(?!leu)'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'AML'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'MDS-'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = '-MPN'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'MDS_MPN'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'CMML'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'Mast'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'CML'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'NK'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'MACS'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'CLL'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'BCP_ALL'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'HZL_group'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'TL'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
+
+# %%
+feature_to_check_regex = 'Lym_group'
+
+features_curate_sub = features_curate.loc[features_curate.feature.str.contains(feature_to_check_regex, regex=True)]
+features_curate_sub[features_curate_sub.value != 0]
 
 # %% [markdown]
 # ## mode of action

@@ -1,5 +1,5 @@
 #'---
-#' title: figure_4 preparation OUTRIDER
+#' title: figure_5 preparation OUTRIDER
 #' author: xueqicao
 #' wb:
 #'  py:
@@ -30,8 +30,8 @@
 
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
-                             "/processed_data/snakemake/figure_4_prep_fr.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202303_2/processed_data/snakemake/figure_4_prep_fr.snakemake")
+                             "/processed_data/snakemake/figure_5_prep_fr.snakemake"))
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202303_2/processed_data/snakemake/figure_5_prep_fr.snakemake")
 print("Snakemake saved") 
 
 

@@ -29,6 +29,8 @@
 #'  input:
 #'    - mll_cnv: '`sm expand(config["projectPath"] + "/manuscript/cnv/{dataset}.tsv",
 #'                   dataset=outputDatasets)`'
+#'    - mll_cnv_full: '`sm expand(config["projectPath"] + "/manuscript/cnv_full/{dataset}.tsv",
+#'                    dataset=outputDatasets)`'
 #'    - mll_arriba: '`sm expand(config["projectPath"] + "/manuscript/arriba/{dataset}.tsv",
 #'                   dataset=outputDatasets)`'
 #'    - mll_star_fusion: '`sm expand(config["projectPath"] + "/manuscript/star_fusion/{dataset}.tsv",
@@ -38,8 +40,8 @@
 #'    - mll_manta_sv: '`sm expand(config["projectPath"] + "/manuscript/manta_sv/{dataset}.tsv",
 #'                      dataset=outputDatasets)`'
 #'    - cnv_tet2: '`sm config["projectPath"] + "/manuscript/cnv/cnv_tet2.csv"`'
-#'    - vepRes: '`sm expand(config["intogenDir"] +
-#'              "/steps/vep/MLL_WGS_MLL_{dataset}.tsv.gz", dataset=[x.upper() for x in outputDatasets])`'
+#'    - vepRes: '`sm expand(config["vep_path"] +
+#'              "/MLL_{dataset}.vep.tsv.gz", dataset=outputDatasets)`'
 #'    - enrichmentTabOr: '`sm config["projectPath"] + 
 #'                        "/manuscript/figure_2/plot_data/enrichments_TopK_or.csv"`'
 #'    - enrichmentTabAc: '`sm config["projectPath"] + 
@@ -54,9 +56,19 @@
 #'             annotation=annotations, dataset=inputDatasets)`'
 #'    - ods_filter_out: '`sm expand(config["outriderDir"] +"/processed_results/aberrant_expression/{annotation}/outrider/{dataset}/ods_filter_out.Rds",
 #'                        annotation=annotations, dataset=inputDatasets)`'
+#'    - prop_mutation_or: '`sm config["projectPath"] + 
+#'                    "/manuscript/figure_2/plot_data/anova/prop_mutation_or.csv"`'
 #'  output:
-#'    - tet2_tab_raw: '`sm config["projectPath"] + 
-#'                     "/manuscript/sup_table/tet2_tab_raw.csv"`'
+#'    - leu_ocg: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/leu_ocg.csv"`'
+#'    - leu_tsg: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/leu_tsg.csv"`'
+#'    - figure_2a: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_2a.csv"`'
+#'    - figure_2b: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_2b.csv"`'
+#'    - figure_2c: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/figure_2c.csv"`'
 #'    - wBhtml: '`sm config["htmlOutputPath"] + "/manuscript/figure_2.html"`'
 #'  type: noindex
 #'  threads: 1  
@@ -71,7 +83,7 @@
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
                              "/processed_data/snakemake/figure_2.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202401/processed_data/snakemake/figure_2.snakemake")
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202402/processed_data/snakemake/figure_2.snakemake")
 print("Snakemake saved") 
 
 suppressPackageStartupMessages({
@@ -137,6 +149,8 @@ ac_res[, geneID_short := strsplit(geneID, "[.]")[[1]][1], by=rownames(ac_res)]
 
 leu_ocg <- fread(snakemake@params$CGC_leukemia_OCG_list)
 leu_tsg <- fread(snakemake@params$CGC_leukemia_TSG_list)
+fwrite(leu_ocg, snakemake@output$leu_ocg)
+fwrite(leu_tsg, snakemake@output$leu_tsg)
 mll_panel_genes <- fread(snakemake@params$mll_panel_genes, header = FALSE)$V1
 
 AML_enformer <- fread(snakemake@params$AML_enformer)
@@ -148,24 +162,6 @@ AML_variants <- merge(AML_variants, predictedConsequence[, .(Display_term, IMPAC
                       by.x='consequence', by.y='Display_term',
                       all.x=TRUE, all.y=FALSE)
 AML_variants[, samp_symbol := paste0(array_id, "-", symbol)]
-
-for (x in snakemake@input$vepRes) {
-  vep_res_temp <- fread(x)
-  vep_res_temp <- merge(vep_res_temp, gencode[, .(gene_name, gene_type)], 
-                        by.x='SYMBOL', by.y='gene_name', all.x=TRUE, all.y=FALSE)
-  vep_res_temp <- vep_res_temp[gene_type=='protein_coding', ]
-  
-  if (exists("vep_res")) {
-    vep_res <- rbind(vep_res, vep_res_temp, fill=TRUE)
-  } else {
-    vep_res <- vep_res_temp
-  }
-}
-vep_res <- vep_res %>% separate('#Uploaded_variation', 
-                                c("col1", "array_id", "alt", "ref", "col2"), 
-                                sep='__') %>% as.data.table()
-vep_res[, samp_symbol := paste0(array_id, "-", SYMBOL)]
-vep_res_aml <- vep_res[array_id %in% samp_anno_aml[, ArrayID], ]
 
 for (x in snakemake@input$mll_cnv) {
   cnv_res_temp <- fread(x)
@@ -289,6 +285,18 @@ or_dn_all_en <- data.table(
     fisher_test(or_dn_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(or_dn_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(or_dn_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(or_dn_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(or_dn_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
     fisher_test(or_dn_gene_1, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -327,6 +335,18 @@ or_dn_top3_en <- data.table(
     fisher_test(or_dn_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$estimate,
     fisher_test(or_dn_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(or_dn_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[1],
+    fisher_test(or_dn_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(or_dn_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_top3_gene_2, exp_gene, leu_tsg[, ENSGid])$conf.int[2],
+    fisher_test(or_dn_top3_gene_5, exp_gene, leu_tsg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(or_dn_top3_gene_0, exp_gene, leu_tsg[, ENSGid])$p.value,
     fisher_test(or_dn_top3_gene_1, exp_gene, leu_tsg[, ENSGid])$p.value,
@@ -345,7 +365,7 @@ or_dn_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "\u2265
 or_dn_top3_en[, cutoff := 'At most three']
 
 or_dn_en <- rbind(or_dn_all_en, or_dn_top3_en)
-or_dn_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(or_dn_en)]
+or_dn_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(or_dn_en))]
 or_dn_en[total < 1000, total_label := as.character(total)]
 or_dn_en[category=='0', total_pos := 1]
 or_dn_en[category=='1', total_pos := 2]
@@ -354,23 +374,30 @@ or_dn_en[category=="\u22655", total_pos := 4]
 or_dn_en[cutoff=='All', total_pos := total_pos-0.15]
 or_dn_en[cutoff=='At most three', total_pos := total_pos+0.15]
 
-signif_height <- 5
-total_height <- 8.5
+or_dn_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+or_dn_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+or_dn_en[, max(odds_ratio)]
+or_dn_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+
+signif_height_a <- 10
+total_height_a <- 17
 
 p_a_raw <- ggplot(or_dn_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
-  geom_text(data = or_dn_en[cutoff=='All'], aes(y=signif_height, label = p_val.signif), 
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
+  geom_text(data = or_dn_en[cutoff=='All'], aes(y=signif_height_a, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
-  geom_text(data = or_dn_en[cutoff=='At most three'], aes(y=signif_height, label = p_val.signif), 
+  geom_text(data = or_dn_en[cutoff=='At most three'], aes(y=signif_height_a, label = p_val.signif), 
             stat = "identity", nudge_x = 0.18, nudge_y = 0.05, size = 3) +
   geom_hline(yintercept=1, linetype="dashed", color = "firebrick") +
-  annotate("text", x=or_dn_en[, total_pos], y=total_height, label=or_dn_en[, total_label], size = 3) +
-  annotate("text", x=0.25, y=total_height, label='n =', size = 3) +
+  annotate("text", x=or_dn_en[, total_pos], y=total_height_a, label=or_dn_en[, total_label], size = 3) +
+  annotate("text", x=0.25, y=total_height_a, label='n =', size = 3) +
   scale_y_log10(
     breaks = c(0.3, 0.5, 1, 3, 5), 
     minor_breaks = c(c(3:9)/10, c(1:5))
   ) +
-  coord_cartesian(ylim=c(0.3, 6), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.3, 12), xlim=c(1, 4), clip="off")
 
 # p_a_raw
 
@@ -388,7 +415,19 @@ p_a <- p_a_raw +
     panel.border = element_rect(colour = "black", fill=NA, linewidth=0.2)
   )
 
-# p_a
+p_a
+
+figure_2a_dt <- data.table(exp_gene = exp_gene)
+figure_2a_dt[, or_dn_gene_0 := exp_gene %in% or_dn_gene_0]
+figure_2a_dt[, or_dn_gene_1 := exp_gene %in% or_dn_gene_1]
+figure_2a_dt[, or_dn_gene_2 := exp_gene %in% or_dn_gene_2]
+figure_2a_dt[, or_dn_gene_5 := exp_gene %in% or_dn_gene_5]
+figure_2a_dt[, or_dn_top3_gene_0 := exp_gene %in% or_dn_top3_gene_0]
+figure_2a_dt[, or_dn_top3_gene_1 := exp_gene %in% or_dn_top3_gene_1]
+figure_2a_dt[, or_dn_top3_gene_2 := exp_gene %in% or_dn_top3_gene_2]
+figure_2a_dt[, or_dn_top3_gene_5 := exp_gene %in% or_dn_top3_gene_5]
+
+fwrite(figure_2a_dt, snakemake@output$figure_2a)
 
 
 
@@ -430,6 +469,18 @@ or_up_all_en <- data.table(
     fisher_test(or_up_gene_2, exp_gene, leu_ocg[, ENSGid])$estimate,
     fisher_test(or_up_gene_5, exp_gene, leu_ocg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(or_up_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(or_up_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(or_up_gene_0, exp_gene, leu_ocg[, ENSGid])$p.value,
     fisher_test(or_up_gene_1, exp_gene, leu_ocg[, ENSGid])$p.value,
@@ -468,6 +519,18 @@ or_up_top3_en <- data.table(
     fisher_test(or_up_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$estimate,
     fisher_test(or_up_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(or_up_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(or_up_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(or_up_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(or_up_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(or_up_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$p.value,
     fisher_test(or_up_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$p.value,
@@ -486,7 +549,7 @@ or_up_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "\u2265
 or_up_top3_en[, cutoff := 'At most three']
 
 or_up_en <- rbind(or_up_all_en, or_up_top3_en)
-or_up_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(or_up_en)]
+or_up_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(or_up_en))]
 or_up_en[total < 1000, total_label := as.character(total)]
 or_up_en[category=='0', total_pos := 1]
 or_up_en[category=='1', total_pos := 2]
@@ -495,23 +558,30 @@ or_up_en[category=="\u22655", total_pos := 4]
 or_up_en[cutoff=='All', total_pos := total_pos-0.15]
 or_up_en[cutoff=='At most three', total_pos := total_pos+0.15]
 
-signif_height <- 5
-total_height <- 8.5
+or_up_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+or_up_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+or_up_en[, max(odds_ratio)]
+or_up_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+
+signif_height_b <- 10
+total_height_b <- 17
 
 p_b_raw <- ggplot(or_up_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
-  geom_text(data = or_up_en[cutoff=='All'], aes(y=signif_height, label = p_val.signif), 
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
+  geom_text(data = or_up_en[cutoff=='All'], aes(y=signif_height_b, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
-  geom_text(data = or_up_en[cutoff=='At most three'], aes(y=signif_height, label = p_val.signif), 
+  geom_text(data = or_up_en[cutoff=='At most three'], aes(y=signif_height_b, label = p_val.signif), 
             stat = "identity", nudge_x = 0.18, nudge_y = 0.05, size = 3) +
   geom_hline(yintercept=1, linetype="dashed", color = "firebrick") +
-  annotate("text", x=or_up_en[, total_pos], y=total_height, label=or_up_en[, total_label], size = 3) +
-  annotate("text", x=0.25, y=total_height, label='n =', size = 3) +
+  annotate("text", x=or_up_en[, total_pos], y=total_height_b, label=or_up_en[, total_label], size = 3) +
+  annotate("text", x=0.25, y=total_height_b, label='n =', size = 3) +
   scale_y_log10(
     breaks = c(0.3, 0.5, 1, 3, 5), 
     minor_breaks = c(c(3:9)/10, c(1:5))
   ) +
-  coord_cartesian(ylim=c(0.3, 6), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.3, 12), xlim=c(1, 4), clip="off")
 
 # p_b_raw
 
@@ -530,6 +600,18 @@ p_b <- p_b_raw +
   )
 
 # p_b
+
+figure_2b_dt <- data.table(exp_gene = exp_gene)
+figure_2b_dt[, or_up_gene_0 := exp_gene %in% or_up_gene_0]
+figure_2b_dt[, or_up_gene_1 := exp_gene %in% or_up_gene_1]
+figure_2b_dt[, or_up_gene_2 := exp_gene %in% or_up_gene_2]
+figure_2b_dt[, or_up_gene_5 := exp_gene %in% or_up_gene_5]
+figure_2b_dt[, or_up_top3_gene_0 := exp_gene %in% or_up_top3_gene_0]
+figure_2b_dt[, or_up_top3_gene_1 := exp_gene %in% or_up_top3_gene_1]
+figure_2b_dt[, or_up_top3_gene_2 := exp_gene %in% or_up_top3_gene_2]
+figure_2b_dt[, or_up_top3_gene_5 := exp_gene %in% or_up_top3_gene_5]
+
+fwrite(figure_2b_dt, snakemake@output$figure_2b)
 
 
 
@@ -573,6 +655,18 @@ ac_all_en <- data.table(
     fisher_test(ac_gene_2, exp_gene, leu_ocg[, ENSGid])$estimate,
     fisher_test(ac_gene_5, exp_gene, leu_ocg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(ac_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(ac_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(ac_gene_0, exp_gene, leu_ocg[, ENSGid])$p.value,
     fisher_test(ac_gene_1, exp_gene, leu_ocg[, ENSGid])$p.value,
@@ -611,6 +705,18 @@ ac_top3_en <- data.table(
     fisher_test(ac_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$estimate,
     fisher_test(ac_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$estimate
   ),
+  odds_ratio_ci_low = c(
+    fisher_test(ac_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[1],
+    fisher_test(ac_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[1]
+  ),
+  odds_ratio_ci_up = c(
+    fisher_test(ac_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_top3_gene_2, exp_gene, leu_ocg[, ENSGid])$conf.int[2],
+    fisher_test(ac_top3_gene_5, exp_gene, leu_ocg[, ENSGid])$conf.int[2]
+  ),
   p_val = c(
     fisher_test(ac_top3_gene_0, exp_gene, leu_ocg[, ENSGid])$p.value,
     fisher_test(ac_top3_gene_1, exp_gene, leu_ocg[, ENSGid])$p.value,
@@ -629,7 +735,7 @@ ac_top3_en[, category := factor(category, levels = c("0", "1", "2-4", "\u22655")
 ac_top3_en[, cutoff := 'At most three']
 
 ac_en <- rbind(ac_all_en, ac_top3_en) 
-ac_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=rownames(ac_en)]
+ac_en[, total_label := paste0(round(total/1000, digits=1), 'k'), by=list(rownames(ac_en))]
 ac_en[total < 1000, total_label := as.character(total)]
 ac_en[category=='0', total_pos := 1]
 ac_en[category=='1', total_pos := 2]
@@ -638,23 +744,32 @@ ac_en[category=="\u22655", total_pos := 4]
 ac_en[cutoff=='All', total_pos := total_pos-0.15]
 ac_en[cutoff=='At most three', total_pos := total_pos+0.15]
 
-signif_height <- 5
-total_height <- 8.5
+ac_en[p_val.signif=='ns', odds_ratio_ci_low := NA]
+ac_en[p_val.signif=='ns', odds_ratio_ci_up := NA]
+ac_en[, max(odds_ratio)]
+ac_en[, max(odds_ratio_ci_up, na.rm=TRUE)]
+ac_en[, min(odds_ratio)]
+ac_en[, min(odds_ratio_ci_low, na.rm=TRUE)]
+
+signif_height_c <- 18
+total_height_c <- 35
 
 p_c_raw <- ggplot(ac_en, aes(x=category, y=odds_ratio, fill = cutoff)) +
   geom_bar(stat="identity", position="dodge", width=0.7) +
-  geom_text(data = ac_en[cutoff=='All'], aes(y=signif_height, label = p_val.signif), 
+  geom_errorbar(aes(ymin=odds_ratio_ci_low, ymax=odds_ratio_ci_up), 
+                width=0.1, position=position_dodge(width=0.7)) +
+  geom_text(data = ac_en[cutoff=='All'], aes(y=signif_height_c, label = p_val.signif), 
             stat = "identity", nudge_x = -0.18, nudge_y = 0.05, size = 3) +
-  geom_text(data = ac_en[cutoff=='At most three'], aes(y=signif_height, label = p_val.signif), 
+  geom_text(data = ac_en[cutoff=='At most three'], aes(y=signif_height_c, label = p_val.signif), 
             stat = "identity", nudge_x = 0.18, nudge_y = 0.05, size = 3) +
   geom_hline(yintercept=1, linetype="dashed", color = "firebrick") +
-  annotate("text", x=ac_en[, total_pos], y=total_height, label=ac_en[, total_label], size = 3) +
-  annotate("text", x=0.25, y=total_height, label='n =', size = 3) +
+  annotate("text", x=ac_en[, total_pos], y=total_height_c, label=ac_en[, total_label], size = 3) +
+  annotate("text", x=0.25, y=total_height_c, label='n =', size = 3) +
   scale_y_log10(
-    breaks = c(0.3, 0.5, 1, 3, 5), 
-    minor_breaks = c(c(3:9)/10, c(1:5))
+    breaks = c(0.1, 0.3, 0.5, 1, 3, 5), 
+    minor_breaks = c(c(1:9)/10, c(1:5))
   ) +
-  coord_cartesian(ylim=c(0.3, 6), xlim=c(1, 4), clip="off")
+  coord_cartesian(ylim=c(0.1, 20), xlim=c(1, 4), clip="off")
 
 # p_c_raw
 
@@ -673,6 +788,18 @@ p_c <- p_c_raw +
   )
 
 # p_c
+
+figure_2c_dt <- data.table(exp_gene = exp_gene)
+figure_2c_dt[, ac_gene_0 := exp_gene %in% ac_gene_0]
+figure_2c_dt[, ac_gene_1 := exp_gene %in% ac_gene_1]
+figure_2c_dt[, ac_gene_2 := exp_gene %in% ac_gene_2]
+figure_2c_dt[, ac_gene_5 := exp_gene %in% ac_gene_5]
+figure_2c_dt[, ac_top3_gene_0 := exp_gene %in% ac_top3_gene_0]
+figure_2c_dt[, ac_top3_gene_1 := exp_gene %in% ac_top3_gene_1]
+figure_2c_dt[, ac_top3_gene_2 := exp_gene %in% ac_top3_gene_2]
+figure_2c_dt[, ac_top3_gene_5 := exp_gene %in% ac_top3_gene_5]
+
+fwrite(figure_2c_dt, snakemake@output$figure_2c)
 
 
 
@@ -841,6 +968,56 @@ p_s4 <- p_s4_raw +
 
 
 
+#### s10. validated by mutation #####
+prop_mutation_or <- fread(snakemake@input$prop_mutation_or)
+
+prop_mutation_or[, Category := factor(Category, levels = rev(c('Underexpression outlier', 'Overexpression outlier', 
+                                                               'Activation outlier', 'None outlier')))]
+prop_mutation_or[, mutation_type := factor(mutation_type, 
+                                           levels = rev(c(
+                                             "copy_number_loss",   
+                                             "copy_number_gain",
+                                             "structural_variant",
+                                             "promoter_variant",
+                                             "splice_related_variant",
+                                             "frameshift_variant",
+                                             "stop_gained",
+                                             "multiple_type", 
+                                             "none"
+                                           )),
+                                           labels = rev(c(
+                                             "Copy number loss",   
+                                             "Copy number gain",
+                                             "Structural",
+                                             "Promoter (TSS±2Kbp)",
+                                             "VEP splice-related",
+                                             "VEP frameshift",
+                                             "VEP stop-gained",
+                                             "Multiple",
+                                             "None"
+                                           )))]
+
+p_s10_raw <- ggplot(prop_mutation_or, aes(x=Category, y=Percentage, fill=mutation_type)) + 
+  geom_bar(stat="identity",position = "stack")
+# p_s10_raw
+
+p_s10 <- p_s10_raw +
+  scale_y_continuous(labels = function(x) paste0(x*100, "%"), limits = c(0,1), breaks = c(0:10)/10) +
+  scale_fill_manual(values=rev(c(
+    RColorBrewer::brewer.pal(8, "YlOrRd")[c(8,6,4)],
+    RColorBrewer::brewer.pal(8, "YlGnBu")[c(2,4,6,8)],
+    RColorBrewer::brewer.pal(8, "BuPu")[c(7)],
+    'lightgrey'
+  )), name='Mutation type',  guide = guide_legend(reverse = TRUE)) +
+  xlab('') +
+  theme_vale +
+  coord_flip()
+
+# p_s10
+
+
+
+
 ### link or to curated variants in AML panel genes #####
 or_res_dn_aml_panel <- or_res[zScore<0 & 
                                 sampleID %in% samp_anno_aml[, ArrayID] & 
@@ -866,226 +1043,9 @@ curated_variant_stop_or_aml_panel[, table(!is.na(sampleID))]
 
 
 
-### link or to vep in AML panel genes #####
-vep_res_aml_stop <- vep_res_aml[(Consequence=='stop_hained' | 
-                                   Consequence=='frameshift_variant' |
-                                   Consequence=='splice_acceptor_variant' |
-                                   Consequence=='splice_donor_variant' ) & 
-                                  SYMBOL %in% mll_panel_genes, ]
-
-or_vep_aml_panel <- merge(or_res_dn_aml_panel, vep_res_aml, 
-                          by='samp_symbol', all.x=TRUE, all.y=FALSE)
-or_vep_aml_panel[, table(!is.na(array_id))]
-
-or_vep_stop_aml_panel <- merge(or_res_dn_aml_panel, vep_res_aml_stop, 
-                               by='samp_symbol', all.x=TRUE, all.y=FALSE)
-or_vep_stop_aml_panel[, table(!is.na(array_id))]
-
-vep_stop_or_aml_panel <- merge(vep_res_aml_stop, or_res_dn_aml_panel, 
-                               by='samp_symbol', all.x=TRUE, all.y=FALSE)
-vep_stop_or_aml_panel[, table(!is.na(sampleID))]
-
-
-
-
-### link TET2 outlier to cnv, vep, sv, fusion #####
-symbol_to_analyze <- 'TET2'
-sample_to_analyze <- or_res[hgncSymbol=='TET2', sampleID]
-samp_anno[ArrayID %in% sample_to_analyze, table(Cohort_group)]
-samp_anno[ArrayID %in% sample_to_analyze, table(Diag)]
-
-samp_anno_tet2_or <- samp_anno[ArrayID %in% sample_to_analyze, 
-                               .(ArrayID, Diag)]
-samp_anno_tet2_or <- merge(samp_anno_tet2_or, 
-                           or_res[hgncSymbol=='TET2', .(hgncSymbol, geneID, sampleID, pValue, padjust, zScore, 
-                                                        rawcounts, expected_counts)], 
-                           by.x='ArrayID', by.y='sampleID')
-
-fwrite(samp_anno_tet2_or, snakemake@output$tet2_tab_raw)
-
-# sample_to_analyze <- c('MLL_29041', 'MLL_14744')
-
-# cnv
-cnv_res[SYMBOL==symbol_to_analyze, table(CALL)]
-cnv_samp <- cnv_res[ARRAY_ID %in% sample_to_analyze, ]
-cnv_samp[SYMBOL==symbol_to_analyze, ]
-#' copy number loss found in MLL_29041
-
-# vep
-vep_res_tet2 <- vep_res[SYMBOL==symbol_to_analyze, ]
-vep_res_tet2[, table(Consequence)]
-vep_res_tet2[array_id %in% sample_to_analyze, ]
-#' nothing found for vep
-
-# sv
-sv_manta_bcp_all <- fread(grep('BCP_ALL', snakemake@input$mll_manta_sv, value = TRUE))
-# sv_manta_bcp_all[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-sv_manta_samp <- sv_manta_bcp_all[array_id %in% sample_to_analyze, ]
-sv_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ) & array_id %in% sample_to_analyze, ]
-
-sv_manta_aml <- fread(grep('AML', snakemake@input$mll_manta_sv, value = TRUE))
-# sv_manta_aml[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-sv_manta_samp <- sv_manta_aml[array_id %in% sample_to_analyze, ]
-sv_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ) & array_id %in% sample_to_analyze, ]
-#' nothing found for sv
-
-# fusion
-fusion_manta_bcp_all <- fread(grep('BCP_ALL', snakemake@input$mll_manta, value = TRUE))
-# fusion_manta_bcp_all[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_manta_samp <- fusion_manta_bcp_all[array_id %in% sample_to_analyze, ]
-fusion_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_manta_aml <- fread(grep('AML', snakemake@input$mll_manta, value = TRUE))
-# fusion_manta_aml[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_manta_samp <- fusion_manta_aml[array_id %in% sample_to_analyze, ]
-fusion_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_manta_MDS <- fread(grep('MDS[.]', snakemake@input$mll_manta, value = TRUE))
-# fusion_manta_MDS[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_manta_samp <- fusion_manta_MDS[array_id %in% sample_to_analyze, ]
-fusion_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_manta_TL_group <- fread(grep('TL_group', snakemake@input$mll_manta, value = TRUE))
-# fusion_manta_TL_group[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_manta_samp <- fusion_manta_TL_group[array_id %in% sample_to_analyze, ]
-fusion_manta_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-#' nothing found for manta
-
-fusion_arriba_bcp_all <- fread(grep('BCP_ALL', snakemake@input$mll_arriba, value = TRUE))
-# fusion_arriba_bcp_all[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_arriba_samp <- fusion_arriba_bcp_all[array_id %in% sample_to_analyze, ]
-fusion_arriba_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_arriba_aml <- fread(grep('AML', snakemake@input$mll_arriba, value = TRUE))
-# fusion_arriba_aml[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_arriba_samp <- fusion_arriba_aml[array_id %in% sample_to_analyze, ]
-fusion_arriba_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_arriba_MDS <- fread(grep('MDS[.]', snakemake@input$mll_arriba, value = TRUE))
-# fusion_arriba_MDS[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_arriba_samp <- fusion_arriba_MDS[array_id %in% sample_to_analyze, ]
-fusion_arriba_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_arriba_TL_group <- fread(grep('TL_group', snakemake@input$mll_arriba, value = TRUE))
-# fusion_arriba_TL_group[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_arriba_samp <- fusion_arriba_TL_group[array_id %in% sample_to_analyze, ]
-fusion_arriba_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-#' nothing found for arriba
-
-fusion_star_fusion_bcp_all <- fread(grep('BCP_ALL', snakemake@input$mll_star_fusion, value = TRUE))
-# fusion_star_fusion_bcp_all[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_star_fusion_samp <- fusion_star_fusion_bcp_all[array_id %in% sample_to_analyze, ]
-fusion_star_fusion_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_star_fusion_aml <- fread(grep('AML', snakemake@input$mll_star_fusion, value = TRUE))
-# fusion_star_fusion_aml[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_star_fusion_samp <- fusion_star_fusion_aml[array_id %in% sample_to_analyze, ]
-fusion_star_fusion_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_star_fusion_MDS <- fread(grep('MDS[.]', snakemake@input$mll_star_fusion, value = TRUE))
-# fusion_star_fusion_MDS[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_star_fusion_samp <- fusion_star_fusion_MDS[array_id %in% sample_to_analyze, ]
-fusion_star_fusion_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-
-fusion_star_fusion_TL_group <- fread(grep('TL_group', snakemake@input$mll_star_fusion, value = TRUE))
-# fusion_star_fusion_TL_group[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-fusion_star_fusion_samp <- fusion_star_fusion_TL_group[array_id %in% sample_to_analyze, ]
-fusion_star_fusion_samp[( gene1==symbol_to_analyze | gene2==symbol_to_analyze ), ]
-#' nothing found for star_fusion
-
-
-
-
-### TET2 expression vs. VEP #####
-geneID_TET2 <- gencode[gene_name == 'TET2', gene_id]
-
-counts_tet2 <- data.table(sampleID = colnames(ods),
-                          raw_count = OUTRIDER::counts(ods, normalized = FALSE)[geneID_TET2,],
-                          expected_count = OUTRIDER::normalizationFactors(ods)[geneID_TET2,],
-                          autoencoder_norm_count = OUTRIDER::counts(ods, normalized = TRUE)[geneID_TET2,],
-                          size_factor = OUTRIDER::sizeFactors(ods))
-counts_tet2 <- merge(counts_tet2, 
-                     vep_res[SYMBOL==symbol_to_analyze, .(array_id, Consequence, Location, ref, alt)] %>% unique(), 
-                     by.x='sampleID', by.y='array_id', all.x=TRUE, all.y=FALSE)
-
-cnv_tet2 <- fread(snakemake@input$cnv_tet2)
-counts_tet2 <- merge(counts_tet2, 
-                     cnv_tet2[SYMBOL=='TET2', .(ARRAY_ID, MEAN_LOG2_COPY_RATIO, CALL)] %>% unique(), 
-                     by.x='sampleID', by.y='ARRAY_ID', all.x=TRUE, all.y=FALSE)
-counts_tet2[is.na(MEAN_LOG2_COPY_RATIO), MEAN_LOG2_COPY_RATIO := 0]
-counts_tet2[, size_factor_norm_count := (raw_count + 1)/size_factor]
-counts_tet2[, outlier := sampleID %in% or_res[hgncSymbol=='TET2', sampleID]]
-counts_tet2[, table(Consequence)]
-
-stat.test <- ggpubr::compare_means(formula = size_factor_norm_count ~ Consequence, data = counts_tet2, method = "wilcox.test")
-
-ggplot(counts_tet2, aes(x=Consequence, y=size_factor_norm_count+1)) +
-  geom_violin(aes(colour=Consequence, fill=Consequence), alpha=0.3) + 
-  geom_boxplot(fill=NA, width=0.25) + 
-  stat_pvalue_manual(stat.test, label="p.signif", y.position = 5) + 
-  scale_y_log10()
-
-stat.test <- ggpubr::compare_means(formula = autoencoder_norm_count ~ Consequence, data = counts_tet2, method = "wilcox.test")
-
-ggplot(counts_tet2, aes(x=Consequence, y=autoencoder_norm_count+1)) +
-  geom_violin(aes(colour=Consequence, fill=Consequence), alpha=0.3) + 
-  geom_boxplot(fill=NA, width=0.25) + 
-  stat_pvalue_manual(stat.test, label="p.signif", y.position = 4.5) + 
-  scale_y_log10()
-
-stat.test <- ggpubr::compare_means(formula = expected_count ~ Consequence, data = counts_tet2, method = "wilcox.test")
-
-ggplot(counts_tet2, aes(x=Consequence, y=expected_count+1)) +
-  geom_violin(aes(colour=Consequence, fill=Consequence), alpha=0.3) + 
-  geom_boxplot(fill=NA, width=0.25) + 
-  stat_pvalue_manual(stat.test, label="p.signif", y.position = 4.5) + 
-  scale_y_log10()
-
-ggplot(counts_tet2, aes(x=autoencoder_norm_count+1, y=size_factor_norm_count+1)) +
-  geom_point(aes(color=outlier), alpha=0.3) +
-  geom_smooth(method='lm', formula= y~x) + 
-  scale_x_log10() + 
-  scale_y_log10()
-
-ggplot(counts_tet2, aes(x=size_factor_norm_count+1, y=raw_count+1)) +
-  geom_point(aes(color=outlier), alpha=0.3) +
-  geom_smooth(method='lm', formula= y~x) + 
-  scale_x_log10() + 
-  scale_y_log10()
-
-ggplot(counts_tet2, aes(x=expected_count+1, y=raw_count+1)) +
-  geom_point(aes(color=outlier), alpha=0.3) +
-  geom_smooth(method='lm', formula= y~x) + 
-  scale_x_log10() + 
-  scale_y_log10()
-
-ggplot(counts_tet2, aes(x=expected_count+1, y=autoencoder_norm_count+1)) +
-  geom_point(aes(color=outlier), alpha=0.3) +
-  geom_smooth(method='lm', formula= y~x) + 
-  scale_x_log10() + 
-  scale_y_log10()
-
-ggplot(counts_tet2, aes(x=MEAN_LOG2_COPY_RATIO, y=size_factor_norm_count+1)) +
-  geom_point(aes(color=outlier), alpha=0.3) +
-  geom_vline(xintercept=c(-0.3, 0.3), linetype="dashed") + 
-  geom_smooth(method='lm', formula= y~x) + 
-  scale_y_log10()
-
-ggplot() +
-  geom_point(data=counts_tet2[is.na(Consequence), ], 
-             aes(x=autoencoder_norm_count+1, y=size_factor_norm_count+1, color=Consequence), alpha=0.3) +
-  geom_point(data=counts_tet2[!is.na(Consequence), ], 
-             aes(x=autoencoder_norm_count+1, y=size_factor_norm_count+1, color=Consequence), alpha=0.7) +
-  geom_smooth(data=counts_tet2, aes(x=autoencoder_norm_count+1, y=size_factor_norm_count+1), 
-              method='lm', formula= y~x) + 
-  scale_x_log10() + 
-  scale_y_log10()
-
-
-
-
 #### e. TET2 raw counts vs. predicted count #####
 #' TET2 number of outliers
+symbol_to_analyze <- 'TET2'
 or_res[hgncSymbol=='TET2', .N]
 or_res[hgncSymbol=='TET2', sort(zScore)]
 or_res_tet2 <- or_res[hgncSymbol=='TET2', .(zScore, foldChange, sampleID)]
@@ -1563,6 +1523,19 @@ p_s9 <- p_s9_raw +
   ggtitle(paste0("Volcano plot: ", anonym_id_dict[sample_to_curate]))
 
 p_s9
+
+
+
+
+#### s10. validated by cnv percentage #####
+#' ### s10 raw
+#+ plot s10 raw, fig.width=12, fig.height=4
+p_s10_raw
+
+#' ### s10 annotated
+#+ plot s10, fig.width=12, fig.height=4
+p_s10
+
 
 
 

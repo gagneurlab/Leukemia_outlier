@@ -24,7 +24,7 @@ import itertools
 
 # %%
 # this path should be identical to the file `wbuild.yaml` variable `projectPath`  
-project_path =  "/s/project/vale/driver_prediction_202401" 
+project_path =  "/s/project/vale/driver_prediction_202402" 
 if not os.path.exists(project_path):
     os.mkdir(project_path)
 
@@ -122,13 +122,13 @@ label_gene_list = [
     "CGC_leukemia_OCG",
     "CGC_leukemia_TSG",
     "CGC_leukemia_gene",
-    "CGC_cancer_OCG",
-    "CGC_cancer_TSG",
-    "CGC_cancer_gene",
+    # "CGC_cancer_OCG",
+    # "CGC_cancer_TSG",
+    # "CGC_cancer_gene",
 #     "IntOGen_cancer_OCG",
 #     "IntOGen_cancer_TSG",
 #     "IntOGen_cancer_gene",
-    "MLL_leukemia_gene",
+    # "MLL_leukemia_gene",
     "MLL_CGC_leukemia_gene"
            ]
 
@@ -140,8 +140,7 @@ sample_group = [
 ]
 
 model_method = [
-    "lr", "rf", 
-    "xgb", "xgb_op"
+    "rf"
 ]
 
 # %% [markdown]
@@ -212,50 +211,14 @@ experiment_df = add_exp(experiment_df,
                         n_estimators, min_samples_split, max_depth, 
                         weight_true, weight_false, tree_method)
 
-# %% [markdown] toc-hr-collapsed=true
-# # add intogen leave 1 out setup 
-
-# %%
-intogen_input_feature = [
-    'hotmaps,smregions,fml,cbase,mutpanning,dndscv',
-    'clustl,smregions,fml,cbase,mutpanning,dndscv',
-    'clustl,hotmaps,fml,cbase,mutpanning,dndscv',
-    'clustl,hotmaps,smregions,cbase,mutpanning,dndscv',
-    'clustl,hotmaps,smregions,fml,mutpanning,dndscv',
-    'clustl,hotmaps,smregions,fml,cbase,dndscv',
-    'clustl,hotmaps,smregions,fml,cbase,mutpanning'
-]
-outlier_input_feature = ["or,ac,absplice,fr"]
-coess_input_feature = [""]
-
-# %%
-# experiment_df = add_exp(experiment_df, 
-#                         label_gene_list, sample_group, model_method, 
-#                         intogen_input_feature, outlier_input_feature, coess_input_feature, 
-#                         random_seed, solvers, penalty, max_iter, 
-#                         n_estimators, min_samples_split, max_depth, 
-#                         weight_true, weight_false, tree_method)
-
 # %% [markdown]
 # # add network
 
 # %%
 intogen_input_feature = [""]
 outlier_input_feature = [""]
-coess_input_feature = ["coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
-
-# %%
-experiment_df = add_exp(experiment_df, 
-                        label_gene_list, sample_group, model_method, 
-                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
-                        random_seed, solvers, penalty, max_iter, 
-                        n_estimators, min_samples_split, max_depth, 
-                        weight_true, weight_false, tree_method)
-
-# %%
-intogen_input_feature = [""]
-outlier_input_feature = [""]
-coess_input_feature = ["joint_embedding_1"]
+coess_input_feature = ["coess_cluster", "emb_omics", "emb_string", "emb_string_exp",
+                      "emb_omics,emb_string", "emb_omics,emb_string_exp"]
 
 # %%
 experiment_df = add_exp(experiment_df, 
@@ -271,7 +234,43 @@ experiment_df = add_exp(experiment_df,
 # %%
 intogen_input_feature = ["clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv"]
 outlier_input_feature = ["or,ac,absplice,fr"]
-coess_input_feature = ["coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
+coess_input_feature = ["coess_cluster", "emb_omics", "emb_string", "emb_string_exp",
+                      "emb_omics,emb_string", "emb_omics,emb_string_exp"]
+
+# %%
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
+
+# %% [markdown]
+# # add combined setup with nn xgb
+
+# %%
+intogen_input_feature = ["clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv"]
+outlier_input_feature = ["or,ac,absplice,fr"]
+coess_input_feature = [""]
+model_method = ["lr", "rf", "xgb", "xgb_op", "nn"]
+
+# %%
+experiment_df = add_exp(experiment_df, 
+                        label_gene_list, sample_group, model_method, 
+                        intogen_input_feature, outlier_input_feature, coess_input_feature, 
+                        random_seed, solvers, penalty, max_iter, 
+                        n_estimators, min_samples_split, max_depth, 
+                        weight_true, weight_false, tree_method)
+
+# %% [markdown]
+# # add combined setup + network with nn
+
+# %%
+intogen_input_feature = ["clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv"]
+outlier_input_feature = ["or,ac,absplice,fr"]
+coess_input_feature = ["coess_cluster", "emb_omics", "emb_string", "emb_string_exp",
+                      "emb_omics,emb_string", "emb_omics,emb_string_exp"]
+model_method = ["xgb", "xgb_op"]
 
 # %%
 experiment_df = add_exp(experiment_df, 
@@ -299,8 +298,22 @@ experiment_df = experiment_df[np.logical_not(empty_row)]
 experiment_df = experiment_df.reset_index().drop('index', axis=1).reset_index().rename(columns={'index':'experiment_no'})
 
 # %%
+experiment_df
+
+# %%
 # check duplicates
 sum(experiment_df.drop('experiment_no', axis=1).duplicated())
+
+# %%
+# drop duplicates
+experiment_df = experiment_df.loc[np.logical_not(experiment_df.drop('experiment_no', axis=1).duplicated())]
+
+# %%
+# check duplicates
+sum(experiment_df.drop('experiment_no', axis=1).duplicated())
+
+# %%
+experiment_df
 
 # %%
 experiment_df.to_csv(experiment_filepath_time, sep='\t', index = False)

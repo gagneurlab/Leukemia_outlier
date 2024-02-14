@@ -12,939 +12,1247 @@
 #'    - annotations: '`sm annotations`'
 #'    - gencode: '`sm config["gencode"]`'
 #'    - sampAnno: '`sm config["sampleAnnotation"]`'
+#'    - experimentDesign: '`sm config["experimentDesign"]`'
 #'    - manuscriptWording: '`sm config["manuscriptWording"]`'
 #'    - inputDatasets: '`sm inputDatasets`'
 #'    - outputDatasets: '`sm outputDatasets`'
-#'    - CGC_cancer_gene_processed: '`sm config["projectPath"] + "/processed_data/driver_gene_list/CGC_cancer_gene_processed.tsv"`'
-#'    - MLL_CGC_leukemia_gene_list: '`sm config["projectPath"] + "/processed_data/driver_gene_list/MLL_CGC_leukemia_gene_list.tsv"`'
-#'    - lrp1b_survival: '`sm config["lrp1b_survival"]`'
-#'    - activation_enrichment_curation: '`sm config["activation_enrichment_curation"]`'
+#'    - intogenDir: '`sm config["intogenDir"]`'
+#'    - vep_path: '`sm config["vep_path"]`'   
 #'    - htmlOutputPath: '`sm config["htmlOutputPath"] + "/manuscript"`'
+#'    - CGC_leukemia_gene_list: '`sm config["projectPath"] + "/processed_data/driver_gene_list/CGC_leukemia_gene_list.tsv"`'
+#'    - MLL_CGC_leukemia_gene_list: '`sm config["projectPath"] + "/processed_data/driver_gene_list/MLL_CGC_leukemia_gene_list.tsv"`'
+#'    - drug_target: '`sm config["drug_target"]`'
+#'    - figure_4_heatmap: '`sm config["figure_4_heatmap"]`'
 #'  input:
-#'    - mll_cnv: '`sm expand(config["projectPath"] + "/manuscript/cnv/{dataset}.tsv",
-#'                   dataset=outputDatasets)`'
-#'    - mll_arriba: '`sm expand(config["projectPath"] + "/manuscript/arriba/{dataset}.tsv",
-#'                   dataset=outputDatasets)`'
-#'    - mll_star_fusion: '`sm expand(config["projectPath"] + "/manuscript/star_fusion/{dataset}.tsv",
-#'                   dataset=outputDatasets)`'
-#'    - mll_manta: '`sm expand(config["projectPath"] + "/manuscript/manta/{dataset}.tsv",
-#'                   dataset=outputDatasets)`'
-#'    - mll_manta_sv: '`sm expand(config["projectPath"] + "/manuscript/manta_sv/{dataset}.tsv",
-#'                      dataset=outputDatasets)`'
-#'    - vepRes: '`sm expand(config["vep_path"] +
-#'              "/MLL_{dataset}.vep.tsv.gz", dataset=outputDatasets)`'
-#'    - total_counts_marc: '`sm config["total_counts_marc"]`'
-#'    - size_factor_marc: '`sm config["size_factor_marc"]`'
-#'    - gene_anno_marc: '`sm config["gene_anno_marc"]`'
-#'    - diagFisher: '`sm config["projectPath"] + 
-#'                     "/manuscript/figure_4/plot_data/diag_fisher.tsv"`'
-#'    - activationOds: '`sm expand(config["outriderDir"] +"/processed_results/aberrant_expression/{annotation}/outrider/{dataset}/ods_filter_out.Rds",
-#'                      annotation=annotations, dataset=inputDatasets)`'
-#'    - activationRes: '`sm expand(config["outriderDir"] +
-#'                      "/processed_results/aberrant_expression/{annotation}/outrider/{dataset}/res_filter_out.tsv",
-#'                      annotation=annotations, dataset=inputDatasets)`'
+#'    - mll_prc: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_prc.tsv"`'
+#'    - mll_ap: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_ap.tsv"`'
+#'    - mll_ap_full: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_ap_full.tsv"`'
+#'    - mll_var_filter_prc: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_var_filter_prc.tsv"`'
+#'    - mll_var_filter_ap: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_var_filter_ap.tsv"`'
+#'    - mll_var_filter_ap_full: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_var_filter_ap_full.tsv"`'
+#'    - mll_emb_prc: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_emb_prc.tsv"`'
+#'    - mll_emb_ap: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_emb_ap.tsv"`'
+#'    - mll_emb_ap_full: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_emb_ap_full.tsv"`'
+#'    - mll_method_prc: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_method_prc.tsv"`'
+#'    - mll_method_ap: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_method_ap.tsv"`'
+#'    - mll_method_ap_full: '`sm config["projectPath"] + 
+#'                     "/manuscript/figure_4/plot_data/mll_method_ap_full.tsv"`'
+#'    - mll_benchmark_prc: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_benchmark_prc.tsv"`'
+#'    - mll_benchmark_ap: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_benchmark_ap.tsv"`'
+#'    - mll_benchmark_rp: '`sm config["projectPath"] + 
+#'                      "/manuscript/figure_4/plot_data/mll_benchmark_rp.tsv"`'
 #'  output:
-#'    - curation_tab: '`sm config["projectPath"] + 
-#'                     "/manuscript/sup_table/curation_tab.csv"`'
+#'    - p_c: '`sm config["projectPath"] + "/manuscript/figure_4/plot_data/p_c.Rds"`' 
+#'    - p_d: '`sm config["projectPath"] + "/manuscript/figure_4/plot_data/p_d.Rds"`' 
+#'    - CGC_leukemia_gene: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/CGC_leukemia_gene.csv"`'
+#'    - MLL_CGC_leukemia_gene: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/MLL_CGC_leukemia_gene.csv"`'
+#'    - gencode: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/gencode.csv"`'
+#'    - mll_prc: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/mll_prc.tsv"`'
+#'    - mll_ap: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/mll_ap.tsv"`'
+#'    - mll_ap_full: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/mll_ap_full.tsv"`'
+#'    - rcl_list: '`sm config["projectPath"] + 
+#'                     "/manuscript/agg_table_figure/rcl_list.Rds"`'
 #'    - wBhtml: '`sm config["htmlOutputPath"] + "/manuscript/figure_4.html"`'
 #'  type: noindex
 #'  resources:
-#'    - mem_mb: 16000 
+#'    - mem_mb: 8000 
 #' output:   
 #'   html_document:
 #'    code_folding: hide
-#'    code_download: TRUE 
+#'    code_download: TRUE
 #'---
 
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
                              "/processed_data/snakemake/figure_4.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202304/processed_data/snakemake/figure_4.snakemake")
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202402/processed_data/snakemake/figure_4.snakemake")
 print("Snakemake saved") 
 
+
+
 suppressPackageStartupMessages({
-  library(mclust)
   library(data.table)
-  library(readxl)
+  library(dplyr)
   library(tidyr)
   library(scales)
   library(ggplot2)
-  library(ggrepel)
   library(ggpubr)
-  library(rstatix)
-  library(magrittr)
-  library(slanter)
+  library(ggrepel)
   library(pheatmap)
-  library(OUTRIDER)
-  library(tidyverse)
-  library(survival)
-  library(survminer)
-  library(openxlsx)
-  library(RColorBrewer)
-  library(grid)
+  library(ComplexHeatmap)
+  library(ggnewscale)
 })
+source("Scripts/manuscript/function.R")
 source("Scripts/manuscript/manuscript_theme.R")
 
 options(bitmapType='cairo')
 
-cohort_color <- c("HCL-V"=RColorBrewer::brewer.pal(8, "Paired")[6],
-                  "HCL"=RColorBrewer::brewer.pal(8, "Paired")[8],
-                  "MZL"=RColorBrewer::brewer.pal(8, "Set2")[6],
-                  "Others"=RColorBrewer::brewer.pal(8, "Set2")[8])
+benchmark_color <- c(RColorBrewer::brewer.pal(8, "Set2")[6],
+                     RColorBrewer::brewer.pal(12, "Paired")[c(1:7, 10:12, 8:9)])
+names(benchmark_color) <- c("mutsigcv", 
+                            "cbase", 
+                            "clustl", 
+                            "dndscv",  
+                            "fml", 
+                            "hotmaps", 
+                            "mutpanning", 
+                            "smregions",
+                            "intogen_wo_post", 
+                            "intogen", 
+                            "oncovar", 
+                            "vale_7tools",
+                            "vale")
+benchmark_label_dt <- data.table(Method = names(benchmark_color), 
+                                 benchmark_label = c("MutSigCV", 
+                                                     "CBaSE", 
+                                                     "OncodriveCLUSTL", 
+                                                     "dNdScv", 
+                                                     "OncodriveFML", 
+                                                     "HotMAPS", 
+                                                     "MutPanning", 
+                                                     "smRegions",
+                                                     "intOGen: 7 tools", 
+                                                     "intOGen", 
+                                                     "oncoVar",
+                                                     "Integrative model: 7 tools",
+                                                     "Integrative model"))
+benchmark_label_dt[, feature_source := 'Genomic']
+benchmark_label_dt[Method %in% c("vale") , feature_source := 'Transcriptomic']
 
+feat_label_dt <- data.table(input_feature = c("clustl",
+                                              "hotmaps",
+                                              "smregions",
+                                              "fml",
+                                              "cbase",
+                                              "mutpanning",
+                                              "dndscv",
+                                              
+                                              "clustl,hotmaps",
+                                              "clustl,hotmaps,smregions",
+                                              "clustl,hotmaps,smregions,fml",
+                                              "clustl,hotmaps,smregions,fml,cbase",
+                                              "clustl,hotmaps,smregions,fml,cbase,mutpanning",
+                                              "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv",
+                                              
+                                              "absplice",
+                                              "fr",
+                                              "or,ac",
+                                              
+                                              "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice",
+                                              "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice,fr",
+                                              "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice,fr"
+),
+feat_label = c("  Linear cluster of mutations \n      (OncodriveCLUSTL)", 
+               "  3D cluster of mutations \n      (HotMAPS)", 
+               "  Cluster in domain \n      (smRegions)",
+               "  Functional impact bias \n      (OncodriveFML)", 
+               "  Excess of mutations \n      (CBaSE)", 
+               "  Trinucleotide-specific bias \n      (MutPanning)", 
+               "  Excess of mutations \n      (dNdScv)", 
+               
+               "+ 3D cluster of mutations \n      (HotMAPS)", 
+               "+ Cluster in domain \n      (smRegions)",
+               "+ Functional impact bias \n      (OncodriveFML)", 
+               "+ Excess of mutations \n      (CBaSE)", 
+               "+ Trinucleotide-specific bias \n      (MutPanning)", 
+               "+ Excess of mutations \n      (dNdScv)", 
+               
+               "  Splicing variants \n      (AbSplice)", 
+               "  Splicing outliers \n      (FRASER)", 
+               "  Expression outliers \n      (OUTRIDER+NB-act)", 
+               
+               "+ Splicing variants \n      (AbSplice)", 
+               "+ Splicing outliers \n      (FRASER)",
+               "+ Expression outliers \n      (OUTRIDER+NB-act)"
+))
 
+feat_label_dt[, feature_source := 'Genomic']
+feat_label_dt[input_feature %in% c(
+  "or,ac",
+  "fr",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice,fr",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice,fr"
+) , feature_source := 'Transcriptomic']
+
+feat_color <- c(
+  'Genomic'=RColorBrewer::brewer.pal(12, "Paired")[2],
+  'Transcriptomic'=RColorBrewer::brewer.pal(12, "Paired")[6]
+)
+
+curation_color <- c('Reported hematologic malignancy driver gene'=RColorBrewer::brewer.pal(8, "Paired")[4], 
+                    'Reported cancer driver gene'=RColorBrewer::brewer.pal(8, "Paired")[3], 
+                    'Candidate hematologic malignancy driver gene'=RColorBrewer::brewer.pal(8, "Paired")[1])
 
 
 # get parameters
-set.seed(2023)
-
 output_dir <- snakemake@params$htmlOutputPath
+project_dir <- snakemake@params$projectPath
+intogen_dir <- snakemake@params$intogenDir
+vep_dir <- snakemake@params$vep_path
 
 single_group <- snakemake@params$inputDatasets
+
 sample_group <- snakemake@params$outputDatasets
-sample_group <- append(sample_group, single_group)
+sample_group_by_size <- sample_group
+sample_group_by_cell_type <- c('AML', 'MDS', 'MPN', 'MDS_MPN_group', 'CMML', 
+                               'CML', 'NK', 'MACS_group', 'Mast_group', 
+                               'TL_group', 'CLL', 'Lym_group', 'HZL_group', 'BCP_ALL')
 
 samp_anno <- fread(snakemake@params$sampAnno)
 samp_anno_exp <- separate_rows(samp_anno, 'DROP_GROUP', sep=',') %>% as.data.table()
-samp_anno_hcl_group <- samp_anno_exp[DROP_GROUP=='HZL_group',]
+
+gencode <- fread(snakemake@params$gencode)
+gencode[, gene_id_unique := gene_id]
+gencode[, gene_id := strsplit(gene_id, '[.]')[[1]][1], by=rownames(gencode)]
+fwrite(gencode, snakemake@output$gencode)
+gencode_pr <- gencode[gene_type=='protein_coding', ]
+
+experiment_design <- fread(snakemake@params$experimentDesign)
+experiment_design[is.na(experiment_design)] <- ''
 
 manuscript_wording <- fread(snakemake@params$manuscriptWording)
 colnames(manuscript_wording) <- gsub(" ", "_", colnames(manuscript_wording))
 
-cohort_dt <- samp_anno[grep(single_group, DROP_GROUP), .N, by = "Cohort_group"]
-cohort_dt <- cohort_dt[order(-N),]
-cohort_dt <- rbind(data.table(Cohort_group=single_group, 
-                              N=samp_anno[grep(single_group, DROP_GROUP), .N]),
-                   cohort_dt)
-
-gencode <- fread(snakemake@params$gencode) 
-
-CGC_cancer_gene <- fread(snakemake@params$CGC_cancer_gene_processed)
 mll_cgc_leukemia_gene <- fread(snakemake@params$MLL_CGC_leukemia_gene_list)
+fwrite(mll_cgc_leukemia_gene, snakemake@output$MLL_CGC_leukemia_gene)
+cgc_leukemia_gene <- fread(snakemake@params$CGC_leukemia_gene_list)
+fwrite(cgc_leukemia_gene, snakemake@output$CGC_leukemia_gene)
 
-vep_res_hcl_group <- fread(grep('HZL_group', snakemake@input$vepRes, value = TRUE))
-vep_res_hcl_group <- vep_res_hcl_group %>% separate('#Uploaded_variation', 
-                                                    c("col1", "array_id", "alt", "ref", "col2"), 
-                                                    sep='__') %>% as.data.table()
+mll_prc <- fread(snakemake@input$mll_prc)
+mll_ap <- fread(snakemake@input$mll_ap)
+mll_ap_full <- fread(snakemake@input$mll_ap_full)
+fwrite(mll_prc, snakemake@output$mll_prc)
+fwrite(mll_ap, snakemake@output$mll_ap)
+fwrite(mll_ap_full, snakemake@output$mll_ap_full)
 
-diag_fisher <- fread(snakemake@input$diagFisher)
-activation_enrichment_curation <- read_xlsx(snakemake@params$activation_enrichment_curation) %>% as.data.table()
+mll_benchmark_prc <- fread(snakemake@input$mll_benchmark_prc)
+mll_benchmark_ap <- fread(snakemake@input$mll_benchmark_ap)
+mll_benchmark_rp <- fread(snakemake@input$mll_benchmark_rp)
 
-ac_res <- fread(snakemake@input$activationRes)
-ods_filter_out <- readRDS(snakemake@input$activationOds)
+mll_var_filter_prc <- fread(snakemake@input$mll_var_filter_prc)
+mll_var_filter_ap <- fread(snakemake@input$mll_var_filter_ap)
+mll_var_filter_ap_full <- fread(snakemake@input$mll_var_filter_ap_full)
 
-total_counts_marc <- readRDS(snakemake@input$total_counts_marc)
-size_factor_marc <- fread(snakemake@input$size_factor_marc, header = TRUE)
-size_factor_marc[, sampleID := regmatches(V1, gregexpr("ohio[^;]+_001|HCL[^;]+_001", V1)), by=rownames(size_factor_marc)]
-gene_anno_marc <- fread(snakemake@input$gene_anno_marc)
-geneID_marc <- gene_anno_marc[gene_name == 'LRP1B', gene_id]
+mll_emb_prc <- fread(snakemake@input$mll_emb_prc)
+mll_emb_ap <- fread(snakemake@input$mll_emb_ap)
+mll_emb_ap_full <- fread(snakemake@input$mll_emb_ap_full)
 
-geneID_LRP1B <- gencode[gene_name == 'LRP1B', gene_id]
+mll_method_prc <- fread(snakemake@input$mll_method_prc)
+mll_method_ap <- fread(snakemake@input$mll_method_ap)
+mll_method_ap_full <- fread(snakemake@input$mll_method_ap_full)
+
+drug_target <- fread(snakemake@params$drug_target)
+
+pharos_target <- fread('/s/project/vale/Resource/pharos_targets_0240205.csv')
+colnames(pharos_target) <- gsub(" ", "_", colnames(pharos_target))
+pharos_target_pr <- pharos_target[Symbol %in% gencode_pr[, gene_name_orig], ]
 
 
 
 
 ### Figure #### 
-#### check variants/CNV/SV ####
-lrp1b_act_samples <- ac_res[hgncSymbol=='LRP1B', sampleID]
+#### a. ap individual, mll #### 
+#' number of RNAseq
+samp_anno_exp[DROP_GROUP==single_group, .N]
 
-#'### VEP
-vep_res_hcl_group[SYMBOL=='LRP1B' & array_id %in% lrp1b_act_samples, ]
-vep_res_hcl_group[SYMBOL=='LRP1B', ]
-#' one missense variant overlapped with LRP1B activation --> nothing explainable
+setnames(mll_ap, 'Training_setup', 'input_feature')
+mll_ap <- merge(mll_ap, feat_label_dt, by='input_feature')
+mll_ap[, input_feature := factor(input_feature, levels = rev(feat_label_dt[, input_feature]))]
 
-#'
-#'### CNV
-cnv_hcl_group <- fread(grep('HZL_group', snakemake@input$mll_cnv, value = TRUE))
-cnv_hcl_group[SYMBOL=='LRP1B' & ARRAY_ID %in% lrp1b_act_samples, ]
-cnv_hcl_group[SYMBOL=='LRP1B', ]
-#' two minor gain of first few exons found with LRP1B activation --> nothing explainable
+feat_label <- mll_ap[, feat_label]
+names(feat_label) <- mll_ap[, input_feature]
 
-#'
-#'### Fusion
-fusion_manta_hcl_group <- fread(grep('HZL_group', snakemake@input$mll_manta, value = TRUE))
-fusion_manta_hcl_group[( gene1=='LRP1B' | gene2=='LRP1B' ) & array_id %in% lrp1b_act_samples, ]
-#' no fusion found for manta --> nothing explainable
+# individual tools
+individual_tool <- c("fml", "clustl", "hotmaps", "smregions", "cbase", "dndscv", "mutpanning", 
+                     "absplice", "or,ac", "fr")
+res_ap <- mll_ap[input_feature %in% individual_tool,]
+# res_ap[, input_feature := factor(input_feature, levels = ]
 
-fusion_arriba_hcl_group <- fread(grep('HZL_group', snakemake@input$mll_arriba, value = TRUE))
-fusion_arriba_hcl_group[( gene1=='LRP1B' | gene2=='LRP1B' ) & array_id %in% lrp1b_act_samples, ]
-#' no fusion found for arriba --> nothing explainable
+p_a_raw <- ggplot(res_ap, aes(input_feature, AP_median, fill=feature_source)) + 
+  geom_errorbar(aes(ymin=AP_1q, ymax=AP_9q), color='gray20', width = 0.2, linewidth = 0.3) +
+  geom_col(alpha = 0.3) +
+  coord_flip()
 
-fusion_star_fusion_hcl_group <- fread(grep('HZL_group', snakemake@input$mll_star_fusion, value = TRUE))
-fusion_star_fusion_hcl_group[( gene1=='LRP1B' | gene2=='LRP1B' ) & array_id %in% lrp1b_act_samples, ]
-#' no fusion found for star_fusion --> nothing explainable
-
-#'
-#'### SV
-sv_manta_hcl_group <- fread(grep('HZL_group', snakemake@input$mll_manta_sv, value = TRUE))
-sv_manta_hcl_group[( gene1=='LRP1B' | gene2=='LRP1B' ) & array_id %in% lrp1b_act_samples, ]
-#' no sv found for star_fusion --> nothing explainable
-
-
-
-
-#### association summary #####
-diag_fisher[, isLeukemia := geneSymbol %in% mll_cgc_leukemia_gene[, GeneSymbol] ]
-
-diag_fisher[, table(p_greater_adjust < 0.05)]
-diag_fisher[, length(unique(gene_id))]
-diag_fisher[, length(unique(Diag))]
-
-diag_fisher[p_greater_adjust < 0.05, length(unique(Diag))]
-diag_fisher[p_greater_adjust < 0.05, table(input_res)]
-
-diag_fisher[p_greater_adjust < 0.05, sum(isCGC)/length(isCGC)]
-diag_fisher_gene <- diag_fisher[, .(geneSymbol, isCGC)] %>% unique()
-diag_fisher_gene[, sum(isCGC)/.N]
-
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'absplice', sum(isLeukemia)/length(isLeukemia)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'or_dn', sum(isLeukemia)/length(isLeukemia)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'or_up', sum(isLeukemia)/length(isLeukemia)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'ac', sum(isLeukemia)/length(isLeukemia)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'fr', sum(isLeukemia)/length(isLeukemia)]
-
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'absplice', sum(isCGC)/length(isCGC)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'or_dn', sum(isCGC)/length(isCGC)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'or_up', sum(isCGC)/length(isCGC)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'ac', sum(isCGC)/length(isCGC)]
-diag_fisher[p_greater_adjust < 0.05 & input_res == 'fr', sum(isCGC)/length(isCGC)]
-
-diag_fisher_absplice <- diag_fisher[p_greater_adjust < 0.05 & input_res == 'absplice', ]
-
-diag_fisher_ac <- diag_fisher[p_greater_adjust < 0.05 & input_res == 'ac', ]
-
-
-
-
-#### a. heatmap fill 0 #####
-heatmap_dt <- diag_fisher[input_res == 'ac' &
-                            p_greater_adjust<0.05 &
-                            geneSymbol %in% CGC_cancer_gene[, GeneSymbol], ]
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, Diag ~ geneSymbol, value.var = 'oddsr', fill=0)
-
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[, Diag]
-heatmap_mtx[heatmap_mtx>1000] <- 1000
-
-# name cohort as manuscript
-rownames(heatmap_mtx) <- sapply(rownames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# customize order
-sp <- slanter::sheatmap(heatmap_mtx, oclust_rows=FALSE, oclust_cols=FALSE)
-gene_order <- sp$gtable$grobs[[4]]$label
-diag_order <- sp$gtable$grobs[[5]]$label
-heatmap_mtx <- heatmap_mtx[diag_order, gene_order]
-
-# mimic oncoplot order
-diag_sum <- apply(heatmap_mtx, 1, function(x){sum(x!=0)}) %>% sort(decreasing = TRUE)
-diag_order <- names(diag_sum[c(1:6, 8, 12, 11, 7, 9, 10)])
-
-gene_value <- heatmap_mtx[diag_order[1], ] %>%  sort(decreasing = TRUE)
-# the for loop was manually tested
-for (i in diag_order[2:8]) {
-  print(i)
-  temp_value <- heatmap_mtx[i, names(gene_value[gene_value==0])] %>%  sort(decreasing = TRUE)
-  gene_value <- c(gene_value[gene_value!=0], temp_value)
-}
-gene_order <- names(gene_value)
-
-# define color
-curation_colors <- c('known' = RColorBrewer::brewer.pal(9, "YlGn")[7],
-                     'little' = RColorBrewer::brewer.pal(9, "YlGn")[5],
-                     'unknown' = RColorBrewer::brewer.pal(9, "Blues")[5],
-                     'NA' = RColorBrewer::brewer.pal(9, "Greys")[3])
-curation_labels <- c('known' = "Multiple literature ",
-                     'little' = "One literature",
-                     'unknown' = "None",
-                     'NA' = "NA")
-
-# prepare plot dt
-heatmap_dt <- diag_fisher[input_res == 'ac' &
-                            p_greater_adjust<0.05 &
-                            geneSymbol %in% CGC_cancer_gene[, GeneSymbol], ]
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)]
-curation_tab <- merge(heatmap_dt, activation_enrichment_curation[, .(Diag, geneSymbol, curation, Cohort_abbreviationion)],
-                      by=c('Diag', 'geneSymbol'), all.x=TRUE)
-keycol <-c("Diag", "geneSymbol")
-setorderv(curation_tab, keycol)
-curation_tab <- subset(curation_tab, select = -Diag )
-curation_tab <- curation_tab[, c(4, 1, 2, 3)] 
-
-setnames(curation_tab, colnames(curation_tab), 
-         c("DiseaseEntity",	"GeneSymbol",	"OddsRatioFromFishertest", "Curation"))
-fwrite(curation_tab, snakemake@output$curation_tab)
-
-heatmap_dt[oddsr>1000, oddsr := 1000]
-heatmap_dt <- dcast(heatmap_dt, Diag ~ geneSymbol, value.var = 'oddsr', fill=1)
-heatmap_dt <- melt(heatmap_dt, id.vars = 'Diag', variable.name = 'geneSymbol', value.name = 'oddsr')
-heatmap_dt <- merge(heatmap_dt, manuscript_wording[, .(Cohort_during_analysis, Cohort_abbreviation)], 
-                    by.x='Diag', by.y='Cohort_during_analysis')
-heatmap_dt <- merge(heatmap_dt, activation_enrichment_curation[, .(Diag, geneSymbol, curation)],
-                    by=c('Diag', 'geneSymbol'), all.x=TRUE)
-heatmap_dt[is.na(curation), curation := 'NA']
-heatmap_dt[, curation := factor(curation, levels = names(curation_colors))]
-heatmap_dt[, Cohort_abbreviation := factor(Cohort_abbreviation, levels = rev(diag_order))]
-heatmap_dt[, geneSymbol := factor(geneSymbol, levels = gene_order)]
-
-# define breaks and colors
-breaks <- c(10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-legend_labels <- c(1, 10, 100, '\u22651000')
-
-p_a_raw <- ggplot(heatmap_dt, aes(geneSymbol, Cohort_abbreviation, fill = oddsr)) +
-  geom_tile(linewidth=0.5, color='lightgrey')
-
-p_a <- p_a_raw +
-  xlab('CGC cancer gene') +
-  ylab('Disease entity') +
+p_a <- p_a_raw +  
+  scale_fill_manual(values = feat_color) +
+  scale_x_discrete(labels = feat_label) +
+  scale_y_continuous(limits = c(0, 0.27), breaks=c(0, 0.1, 0.2)) +
+  xlab("Individual feature") + 
+  ylab("Average Precision") +
   theme_vale +
-  scale_fill_gradientn(colors = c('white', brewer.pal(3, "Purples")),
-                       trans = "log", name = "Odds ratio",
-                       breaks = breaks, labels = legend_labels) +
-  coord_fixed() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust=1, face = "italic"),
-    axis.ticks = element_blank(),
-    panel.border = element_blank(),
+    legend.position = 'bottom',
     panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    legend.spacing.y = unit(0.5, 'cm')
-  )
+    panel.grid.minor.y = element_blank()
+  ) +
+  guides(fill=guide_legend("Feature source", title.position = "top"))
 
 # p_a
 
 
 
 
-#### b. stacked bar plot #####
-samp_anno_lrp1b <- samp_anno_exp[DROP_GROUP==single_group, .(ArrayID, Diag)] %>% unique()
+#### b. ap cumulative, mll #### 
+setnames(mll_ap_full, 'Training_setup', 'input_feature')
+selected_input_feature <- c(
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice,fr"
+)
+selected_input_feature <- c(
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice,fr",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice,fr"
+)
 
-samp_anno_lrp1b[, LRP1B_act := ArrayID %in% lrp1b_act_samples]
-samp_anno_lrp1b[is.na(LRP1B_act), LRP1B_act := 'LRP1B_inact']
+stat.test <- ggpubr::compare_means(formula = AP ~ input_feature, 
+                                   data = mll_ap_full[input_feature %in% selected_input_feature], 
+                                   method = "wilcox.test")
+stat.test$label <- ''
 
-samp_anno_lrp1b[Diag=='HZL', Cohort:='HCL']
-samp_anno_lrp1b[Diag=='vHZL', Cohort:='HCL-V']
-samp_anno_lrp1b[Diag=='MZL', Cohort:='MZL']
-samp_anno_lrp1b[Diag=='Multiples Myelom', Cohort:='MM']
-samp_anno_lrp1b[!Diag %in% c('vHZL', 'HZL', 'MZL', 'Multiples Myelom'), Cohort:='Others']
+# add on top
+on_top <- c(
+  "clustl",
+  "clustl,hotmaps",
+  "clustl,hotmaps,smregions",
+  "clustl,hotmaps,smregions,fml",
+  "clustl,hotmaps,smregions,fml,cbase",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-absplice,fr",
+  "clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv-or,ac,absplice,fr")
+res_ap <- mll_ap[input_feature %in% on_top,]
 
-samp_anno_lrp1b[, N_Cohort_LRP1B := .N, by=c('LRP1B_act', 'Cohort')]
-samp_anno_lrp1b[, N_Cohort := .N, by='Cohort']
-
-percent_dt <- samp_anno_lrp1b[, .(LRP1B_act, Cohort, N_Cohort_LRP1B, N_Cohort)] %>% unique()
-percent_dt[, ratio := N_Cohort_LRP1B/N_Cohort]
-percent_dt[, Cohort := factor(Cohort, levels = c('HCL-V', 'HCL', 'MZL', 'MM', 'Others'))]
-
-percent_dt[, text_label := paste0( label_percent(accuracy=0.1)(ratio), "\n",
-                                   "(", N_Cohort_LRP1B, "/", N_Cohort, ")")]
-percent_dt <- percent_dt[LRP1B_act==TRUE, ]
-percent_dt[, color_label := factor(Cohort, levels = c('Non-activated', 'HCL-V', 'HCL', 'MZL', 'MM', 'Others'))]
-
-percent_dt_pval <- sapply(percent_dt[, Cohort], function(x){
-  samp_anno_lrp1b[, fisher_col := (Cohort==x)]
-  contingency_df <- samp_anno_lrp1b[, table(.(LRP1B_act, fisher_col))]
-  fisher.test(contingency_df, alternative = 'greater')$p.value
-})
-
-percent_dt[, pvalue := percent_dt_pval]
-percent_dt <- add_significance(percent_dt, "pvalue")
-
-p_b_raw <- ggplot(percent_dt, aes(x=Cohort, y=ratio)) + 
-  geom_bar(stat="identity", fill='lightgrey') +
-  scale_y_continuous(labels = function(x) paste0(x*100, "%")) +
-  annotate("text", x=percent_dt[, Cohort], y=1.15, label=percent_dt[, text_label], size = 3) +
-  annotate("text", x=percent_dt[, Cohort], y=0.95, label=percent_dt[, pvalue.signif], size = 3) +
-  annotate("text", x=0, y=1.15, label='Percentage\n activated', size = 3) +
-  coord_cartesian(ylim=c(0,1), xlim=c(1, 4), clip="off")
+p_b_raw <- ggplot(res_ap, aes(input_feature, AP_median)) + 
+  geom_errorbar(aes(ymin=AP_1q, ymax=AP_9q), color='gray20', width = 0.2, linewidth = 0.3) +
+  geom_col(aes(fill=feature_source), alpha = 0.3) +
+  stat_pvalue_manual(stat.test[c(1,5),], label="label", 
+                     y.position = 0.25, bracket.shorten = -0.1, color='gray20') +
+  annotate("text", x=3.5, y=0.27, label='***', size = 4, angle=90, color='gray20') +
+  annotate("text", x=2, y=0.27, label='**', size = 4, angle=90, color='gray20') +
+  coord_flip()
 
 # p_b_raw
 
-p_b <- p_b_raw +
-  scale_fill_manual(values=cohort_color, name='') +
-  ylab(expression(paste(bold("Ratio of "), bolditalic("LRP1B"), bold("-activated samples"))))+
-  xlab('Disease entity (dataset)') +
+p_b <- p_b_raw +  
+  scale_fill_manual(values = feat_color) +
+  scale_x_discrete(labels = feat_label) +
+  scale_y_continuous(limits = c(0, 0.27), breaks=c(0, 0.1, 0.2)) +
+  xlab("Cumulative feature") + 
+  ylab("Average Precision") +
   theme_vale +
   theme(
-    plot.margin = margin(45, 14, 14, 30, "points"),
-    panel.border = element_rect(colour = "black", fill=NA, linewidth=0.2)
-  )
+    legend.position = 'bottom',
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )  +
+  guides(fill=guide_legend("Feature source", title.position = "top"))  
 
 # p_b
 
 
 
 
-#### c. pie chart #####
-composition_dt <- samp_anno_lrp1b[LRP1B_act==TRUE, .N, by='Diag']
-setnames(composition_dt, 'N', 'n_sample')
-composition_dt[, ratio := n_sample/sum(n_sample)]
-composition_dt <- composition_dt[order(-ratio), ]
+#### s1. prc individual, mll #### 
+setnames(mll_prc, 'Training_setup', 'input_feature')
+mll_prc <- merge(mll_prc, mll_ap[, .(input_feature, AP_median)], by='input_feature')
+mll_prc <- merge(mll_prc, feat_label_dt, by='input_feature')
+mll_prc[, feat_label_ap := paste0(feat_label, " (AP median = ", round(AP_median, 4), ")")]
+mll_prc[, input_feature := factor(input_feature, levels = feat_label_dt[, input_feature])]
 
-composition_dt[, Cohort := Diag]
-composition_dt[Diag=='HZL', Cohort:='HCL']
-composition_dt[Diag=='vHZL', Cohort:='HCL-V']
-composition_dt[Diag=='Multiples Myelom', Cohort:='Others']
-composition_dt[, Cohort := factor(Cohort, levels = c('HCL-V', 'HCL', 'MZL', 'Others'))]
-composition_dt[, text_label := paste0(Cohort, " (n=", n_sample, ")")]
+feat_label_ap <- mll_prc[, unique(feat_label_ap)]
+names(feat_label_ap) <- mll_prc[, unique(input_feature)]
 
-p_c_raw <- ggplot(composition_dt, aes(x="", y=ratio, fill=Cohort)) +
+# individual tools
+res_prc <- mll_prc[input_feature %in% individual_tool, ] # each tool
+
+p_s1_raw <- ggplot(res_prc, aes(recall, precision_median)) + 
+  geom_ribbon(aes(ymax=precision_up, ymin=precision_dn, fill=input_feature), alpha=0.3) +
+  geom_step(aes(color=input_feature), direction='vh') 
+
+p_s1 <- p_s1_raw + 
+  scale_color_manual(values = RColorBrewer::brewer.pal(12, "Paired"), 
+                     labels = feat_label_ap, name = 'Individual feature') +
+  scale_fill_manual(values = RColorBrewer::brewer.pal(12, "Paired"), guide="none") +
+  xlab("Recall") + 
+  ylab("Precision") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "left",
+    legend.margin = margin(6, 6, 6, 6)
+  )
+
+# p_s1
+
+
+
+
+#### s2. prc cumulative, mll #### 
+# add on top
+res_prc <- mll_prc[input_feature %in% on_top, ] # on top
+
+p_s2_raw <- ggplot(res_prc, aes(recall, precision_median)) + 
+  geom_ribbon(aes(ymax=precision_up, ymin=precision_dn, fill=input_feature), alpha=0.3) +
+  geom_step(aes(color=input_feature), direction='vh') 
+
+p_s2 <- p_s2_raw + 
+  scale_color_manual(values = RColorBrewer::brewer.pal(12, "Paired"), 
+                     labels = feat_label_ap, name = 'Cumulative feature') +
+  scale_fill_manual(values = RColorBrewer::brewer.pal(12, "Paired"), guide="none") +
+  xlab("Recall") + 
+  ylab("Precision") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "left",
+    legend.margin = margin(6, 6, 6, 6)
+  )
+
+# p_s2
+
+
+
+
+#### s3. prc, mll benchmark #### 
+res_benchmark_ap <- merge(mll_benchmark_ap, benchmark_label_dt, by='Method')
+
+res_benchmark_ap_sub_1 <- res_benchmark_ap[Method %in% c('vale'), ]
+res_benchmark_ap_sub_2 <- res_benchmark_ap[Method %in% c('intogen', 
+                                                         'mutsigcv'), ]
+
+res_benchmark_ap_sub <- merge(res_benchmark_ap_sub_1, res_benchmark_ap_sub_2, 
+                              by='Sample_group', all = TRUE)
+res_benchmark_ap_sub <- merge(res_benchmark_ap_sub, 
+                              manuscript_wording[, .(Study_group, Study_group_during_analysis)] %>% unique(), 
+                              by.x = 'Sample_group', by.y = 'Study_group_during_analysis', all.x = TRUE)
+res_benchmark_ap_sub[Sample_group=='leukemia_14group', Study_group := 'Complete dataset']
+res_benchmark_ap_sub[, benchmark_label.y := factor(benchmark_label.y, 
+                                                   levels=c('MutSigCV', 'intOGen'))]
+
+p_s3_raw <- ggplot(res_benchmark_ap_sub, aes(x=AP.y, y=AP.x, label=Study_group)) +
+  geom_abline(slope=1, intercept=0, linetype='dashed', color='darkgray') +
+  geom_point() +
+  geom_text_repel(size=2) +
+  facet_grid(benchmark_label.x ~ benchmark_label.y) +
+  coord_fixed()
+
+# p_s3_raw
+
+p_s3 <- p_s3_raw + 
+  ylab('Average precision') + 
+  xlab('Average precision') +
+  xlim(0, 0.125) +
+  ylim(0, 0.125) +
+  theme_vale
+
+# p_s3
+
+
+
+
+#### s4. prc var filter, mll #### 
+# test if improvement sigficant
+setnames(mll_var_filter_ap_full, 'Training_setup', 'input_feature')
+stat.test <- ggpubr::compare_means(formula = AP ~ input_feature, 
+                                   data = mll_var_filter_ap_full[input_feature %in% c("driver_prediction_202401_0",
+                                                                                      "driver_prediction_202401_1",
+                                                                                      "driver_prediction_202401_4",
+                                                                                      "driver_prediction_202401_2"), ], 
+                                   method = "wilcox.test")
+stat.test
+
+var_filter_label_dt <- data.table(
+  input_feature = c(
+    "driver_prediction_202401_0", 
+    "driver_prediction_202401_1", 
+    "driver_prediction_202401_2", 
+    "driver_prediction_202401_3",
+    "driver_prediction_202401_4"
+  ),
+  var_filter_label = c(
+    "keep VAF >= 0.1\n",
+    "keep VAF >= 0.1 ; selected consequence\n",
+    "keep VAF >= 0.15; selected consequence; sequencing depth>=20\n",
+    "keep VAF >= 0.1 ; selected consequence; sequencing depth>=20\n",
+    "keep VAF >= 0.15; selected consequence\n"
+  ))
+
+
+setnames(mll_var_filter_prc, 'Training_setup', 'input_feature')
+setnames(mll_var_filter_ap, 'Training_setup', 'input_feature')
+mll_var_filter_prc <- merge(mll_var_filter_prc, mll_var_filter_ap[, .(input_feature, AP_median)], by='input_feature')
+mll_var_filter_prc <- merge(mll_var_filter_prc, var_filter_label_dt, by='input_feature')
+mll_var_filter_prc[, var_filter_label_ap := paste0(var_filter_label, " (AP median = ", round(AP_median, 4), ")\n")]
+mll_var_filter_prc[, input_feature := factor(input_feature, levels = c("driver_prediction_202401_0",
+                                                                       "driver_prediction_202401_1",
+                                                                       "driver_prediction_202401_4",
+                                                                       "driver_prediction_202401_2",
+                                                                       "driver_prediction_202401_3"))]
+
+var_filter_label_ap <- mll_var_filter_prc[, unique(var_filter_label_ap)]
+names(var_filter_label_ap) <- mll_var_filter_prc[, unique(input_feature)]
+
+# individual tools
+res_prc <- mll_var_filter_prc[input_feature %in% c("driver_prediction_202401_0",
+                                                   "driver_prediction_202401_1",
+                                                   "driver_prediction_202401_4",
+                                                   "driver_prediction_202401_2"), ] # each tool
+
+p_s4_raw <- ggplot(res_prc, aes(recall, precision_median)) + 
+  geom_ribbon(aes(ymax=precision_up, ymin=precision_dn, fill=input_feature), alpha=0.3) +
+  geom_step(aes(color=input_feature), direction='vh') 
+
+p_s4 <- p_s4_raw + 
+  scale_color_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), 
+                     labels = var_filter_label_ap, name = 'Additional variant filter criteria:') +
+  scale_fill_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), guide="none") +
+  xlab("Recall") + 
+  ylab("Precision") +
+  ggtitle("Variant filter criteria:\nQUALITY==’PASS’; discard MAF >= 0.000,5") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = 'right',
+    legend.margin = margin(6, 6, 6, 6)
+  )
+
+# p_s4
+
+
+
+
+#### s5. prc emb, mll #### 
+# test if improvement sigficant
+setnames(mll_emb_ap_full, 'Training_setup', 'input_feature')
+stat.test <- ggpubr::compare_means(formula = AP ~ input_feature, 
+                                   data = mll_emb_ap_full, 
+                                   method = "wilcox.test")
+stat.test
+stat.test[c(1,2,3,5),]
+
+emb_label_dt <- data.table(
+  input_feature = c(
+    "",
+    "coess_cluster",
+    "emb_omics",      
+    "emb_omics,emb_string", 
+    "emb_string"     
+  ),
+  emb_label = c(
+    "7 intOGen tools, OUTRIDER, NB-act, FRASER, AbSplice
+    ",
+    "7 intOGen tools, OUTRIDER, NB-act, FRASER, AbSplice
+    + Co-essential modules
+    ",
+    "7 intOGen tools, OUTRIDER, NB-act, FRASER, AbSplice
+    + Embedding Omics
+    ",      
+    "7 intOGen tools, OUTRIDER, NB-act, FRASER, AbSplice
+    + Embedding Omics + Embedding STRING
+    ",     
+    "7 intOGen tools, OUTRIDER, NB-act, FRASER, AbSplice
+    + Embedding STRING
+    "     
+  ))
+
+
+setnames(mll_emb_prc, 'Training_setup', 'input_feature')
+setnames(mll_emb_ap, 'Training_setup', 'input_feature')
+mll_emb_prc <- merge(mll_emb_prc, mll_emb_ap[, .(input_feature, AP_median)], by='input_feature')
+mll_emb_prc <- merge(mll_emb_prc, emb_label_dt, by='input_feature')
+mll_emb_prc[, emb_label_ap := paste0(emb_label, " (AP median = ", round(AP_median, 4), ")\n")]
+mll_emb_prc[, input_feature := factor(input_feature, levels = rev(emb_label_dt[, input_feature]))]
+
+emb_label_ap <- mll_emb_prc[, unique(emb_label_ap)]
+names(emb_label_ap) <- mll_emb_prc[, unique(input_feature)]
+
+# individual tools
+res_prc <- mll_emb_prc[input_feature %in% c(
+  '',
+  'coess_cluster', 
+  "emb_omics",      
+  "emb_string",     
+  "emb_omics,emb_string" 
+), ]
+
+p_s5_raw <- ggplot(res_prc, aes(recall, precision_median)) + 
+  # geom_ribbon(aes(ymax=precision_up, ymin=precision_dn, fill=input_feature), alpha=0.3) +
+  geom_step(aes(color=input_feature), direction='vh')
+
+p_s5 <- p_s5_raw + 
+  scale_color_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), 
+                     labels = emb_label_ap, name = 'Feature',
+                     guide = guide_legend(reverse = TRUE)) +
+  scale_fill_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), guide="none") +
+  xlab("Recall") + 
+  ylab("Precision") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = 'right',
+    legend.margin = margin(6, 6, 6, 6)
+  ) 
+
+# p_s5
+
+
+
+
+#### s8. prc method, mll #### 
+# test if improvement sigficant
+setnames(mll_method_ap_full, 'Training_setup', 'input_feature')
+stat.test <- ggpubr::compare_means(formula = AP ~ input_feature, 
+                                   data = mll_method_ap_full, 
+                                   method = "wilcox.test")
+wilcox.test(mll_method_ap_full[input_feature=='nn', AP],
+            mll_method_ap_full[input_feature=='lr', AP])
+wilcox.test(mll_method_ap_full[input_feature=='lr', AP],
+            mll_method_ap_full[input_feature=='xgb_op', AP])
+wilcox.test(mll_method_ap_full[input_feature=='xgb_op', AP],
+            mll_method_ap_full[input_feature=='rf', AP])
+
+stat.test
+
+method_label_dt <- data.table(
+  input_feature = c(
+    "nn",
+    "lr",
+    "xgb_op",      
+    "rf"
+  ),
+  method_label = c(
+    "Neural network",
+    "Logistic regression",
+    "XGboost",      
+    "Random forest"
+  ))
+
+
+setnames(mll_method_prc, 'Training_setup', 'input_feature')
+setnames(mll_method_ap, 'Training_setup', 'input_feature')
+mll_method_prc <- merge(mll_method_prc, mll_method_ap[, .(input_feature, AP_median)], by='input_feature')
+mll_method_prc <- merge(mll_method_prc, method_label_dt, by='input_feature')
+mll_method_prc[, method_label_ap := paste0(method_label, " (AP median = ", round(AP_median, 4), ")\n")]
+mll_method_prc[, input_feature := factor(input_feature, levels = rev(method_label_dt[, input_feature]))]
+
+method_label_ap <- mll_method_prc[, unique(method_label_ap)]
+names(method_label_ap) <- mll_method_prc[, unique(input_feature)]
+
+# individual tools
+res_prc <- mll_method_prc
+
+p_s8_raw <- ggplot(res_prc, aes(recall, precision_median)) + 
+  # geom_ribbon(aes(ymax=precision_up, ymin=precision_dn, fill=input_feature), alpha=0.3) +
+  geom_step(aes(color=input_feature), direction='vh')
+
+p_s8 <- p_s8_raw + 
+  scale_color_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), 
+                     labels = method_label_ap, name = 'Feature',
+                     guide = guide_legend(reverse = TRUE)) +
+  scale_fill_manual(values = RColorBrewer::brewer.pal(8, "Dark2"), guide="none") +
+  xlab("Recall") + 
+  ylab("Precision") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = 'right',
+    legend.margin = margin(6, 6, 6, 6)
+  ) 
+
+# p_s8
+
+
+
+
+#### s9. prc individual, mll #### 
+mll_benchmark_rp <- merge(mll_benchmark_rp, benchmark_label_dt, by='Method')
+mll_benchmark_rp[, rp_label := benchmark_label]
+mll_benchmark_rp[, Method := factor(Method,levels=c("intogen", "mutpanning", "dndscv", "fml",
+                                                    "cbase", "smregions", "hotmaps", "clustl"))]
+
+manuscript_wording[, Study_group_number := paste0(Study_group, " (n=", Number_of_samples_per_study_group, ")")]
+
+mll_benchmark_rp <- merge(mll_benchmark_rp, 
+                          manuscript_wording[, .(Study_group_number, Study_group_during_analysis)] %>% unique(), 
+                          by.x = 'Sample_group', by.y = 'Study_group_during_analysis', all.x = TRUE)
+mll_benchmark_rp[, Study_group_number := factor(Study_group_number,levels=c(
+  "AML (n=730)", "MDS (n=713)", "MatureB group (n=375)"))]
+
+rp_label <- c('Combination (intOGen)', 'MutPanning', 'dNdScv', 'OncodriveFML',
+              'CBaSE', 'smRegions', 'HotMAPS', 'OncodriveCLUSTL')
+names(rp_label) <- c("intogen", "mutpanning", "dndscv", "fml",
+                     "cbase", "smregions", "hotmaps", "clustl")
+
+# individual tools
+res_rp <- mll_benchmark_rp[Criteria=='isCGC',] # each tool
+
+p_s9_raw <- ggplot(res_rp, aes(Rank, Proportion, color=Method)) + 
+  geom_line() +
+  facet_wrap('Study_group_number') 
+
+# p_s9_raw
+
+p_s9 <- p_s9_raw + 
+  scale_color_manual(values = c('darkgrey', 'brown', 'green', 'red',
+                                'lightgreen', 'lightblue', 'blue', 'purple'), 
+                     labels = rp_label, name = 'Method') +
+  scale_y_continuous(limits = c(0, 1), breaks=c(0:5)*0.2, labels = scales::percent_format(accuracy = 1)) + 
+  scale_x_continuous(limits = c(0, 140), breaks=c(0:7)*20) +
+  ylab("Proportion of CGC elements") +
+  theme_vale +
+  theme(
+    legend.box.background = element_rect(color="black", linewidth=0.3),
+    legend.position = 'right',
+    legend.margin = margin(6, 6, 6, 6)
+  ) 
+
+# p_s9
+
+
+
+
+#### d2. 14 groups, prediction heatmap ####
+n_plot <- 100
+# read in res_viz
+exp_viz <- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
+                               sample_group == single_group &
+                               model_method == 'rf' &
+                               intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
+                               outlier_input_feature == 'or,ac,absplice,fr' &
+                               coess_input_feature == '', ]
+exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
+
+res_viz_pred <- fread(exp_viz[, res_post_path])
+res_viz_pred[, Sample_group := single_group]
+res_viz_pred[, Prediction_post_scaled := Prediction_post/max(Prediction_post)]
+res_viz_pred <- res_viz_pred[, .(GeneSymbol, Prediction_post, Prediction_post_scaled, Sample_group, isCGC, isLeukemia)]
+
+selected_genes <- res_viz_pred[1:n_plot, GeneSymbol]
+res_viz_pred <- res_viz_pred[GeneSymbol %in% selected_genes, ]
+
+# read in res_viz_groups
+exp_viz <- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
+                               sample_group %in% sample_group_by_size &
+                               model_method == 'rf' &
+                               intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
+                               outlier_input_feature == 'or,ac,absplice,fr' &
+                               coess_input_feature == '', ]
+exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
+
+group_label <- manuscript_wording[, unique(Study_group)]
+names(group_label) <- manuscript_wording[, unique(Study_group_during_analysis)]
+
+# read in result for visualization
+if(exists("res_viz_groups")){remove(res_viz_groups)}
+
+for (i in 1:nrow(exp_viz)) {
+  res_temp <- fread(exp_viz[i, res_post_path])
+  res_temp[, Sample_group := exp_viz[i, sample_group]]
+  res_temp[, Prediction_post_scaled := Prediction_post/max(Prediction_post)]
+  
+  if(!exists("res_viz_groups")){
+    res_viz_groups <- res_temp
+  }else{
+    res_viz_groups <- rbind(res_viz_groups, res_temp, fill=TRUE)
+  }
+  
+}
+
+res_viz_groups_pred <- res_viz_groups[, .(GeneSymbol, Prediction_post, Prediction_post_scaled, Sample_group, isCGC, isLeukemia)]
+res_viz_groups_pred <- res_viz_groups_pred[GeneSymbol %in% selected_genes, ]
+
+res_viz_groups_pred[, Sample_group := factor(Sample_group, levels = rev(sample_group_by_cell_type))]
+res_viz_groups_pred[, Sum_prediction_post := sum(Prediction_post), by='GeneSymbol']
+
+res_viz_groups_pred[, curation := 'Candidate hematologic malignancy driver gene']
+res_viz_groups_pred[isCGC==TRUE, curation := 'Reported cancer driver gene']
+res_viz_groups_pred[GeneSymbol %in% mll_cgc_leukemia_gene[, GeneSymbol], curation := 'Reported hematologic malignancy driver gene']
+res_viz_groups_pred[, curation := factor(curation, levels = names(curation_color))]
+
+# heatmap
+heatmap_dt <- res_viz_groups_pred[, .(Sample_group, GeneSymbol, Prediction_post_scaled)] 
+heatmap_dt <- dcast(heatmap_dt, GeneSymbol ~ Sample_group, value.var = 'Prediction_post_scaled', fill=NA)
+
+
+num_gene_clusters <- 5
+num_sample_clusters <- 2
+
+# We ran the following chunck several times to get a good-looking heatmap. No need to run now
+# as we read in the order of final selected heatmap after this chunck
+# get row order
+# heatmap_mtx <- as.matrix(heatmap_dt[,-1])
+# rownames(heatmap_mtx) <- heatmap_dt[, GeneSymbol]
+# set.seed(512)
+# p_d2_phm <- pheatmap(heatmap_mtx,
+#                      row_km = num_gene_clusters,
+#                      column_km = num_sample_clusters
+# )
+# p_d2_phm <- draw(p_d2_phm)
+
+# saveRDS(p_d2_phm, file=snakemake@params$figure_4_heatmap)
+
+heatmap_path <- "/s/project/vale/Resource/figure_4_heatmap.rds"
+p_d2_phm <- readRDS(heatmap_path)
+#p_d2_phm <- readRDS(snakemake@params$figure_4_heatmap)
+
+r.dend <- row_dend(p_d2_phm)
+rcl.list <- row_order(p_d2_phm)
+
+
+# trying new row orders to make the heatmap more beautiful
+rcl.list <- c(rcl.list[1:2], rev(rcl.list[3:5]))
+saveRDS(rcl.list, snakemake@output$rcl_list)
+
+# sort heatmap based on dendogram order
+heatmap_dt <- heatmap_dt[rev(unlist(rcl.list )),]
+gene_cluster_ranges <- rev(as.integer(lapply(rcl.list, function(x) length(x))))
+
+colnames(heatmap_dt)[2:15] <- sapply(colnames(heatmap_dt)[2:15] , function(x){
+  manuscript_wording[Study_group_during_analysis==x, unique(Study_group)]
+}) %>% unlist()
+
+heatmap_dt$y_min = c(0:(n_plot - 1)) 
+heatmap_dt$y_max = c(1 : n_plot ) 
+
+
+# Specify column orders here. 0 is the most left column and 13 is the most right column. 
+# This is done by hand and not by col_order of heatmap.
+column_ords <- c(
+  'AML' = 0,
+  'MDS' = 1,
+  'MPN' = 2,
+  'MDS/MPN group' = 3,
+  'CMML' = 4,
+  'Mastocytosis' = 5,
+  'CML' = 6,
+  'NK' = 7,
+  'PCN group' = 8,
+  'CLL' = 9,
+  'BCP-ALL' = 10,
+  'Hairy-cell group' = 11,
+  'T-cell group' = 12,
+  'MatureB group' = 13
+)
+# p.s. clustering of sample annotations is also done manually. the first 7 groups are marked as Myeloid
+# and the rest as Lymphoid
+
+
+ml <- melt(heatmap_dt, id.vars = c("GeneSymbol", "y_min", "y_max"))
+
+ml$x_min <- sapply(ml$variable , function(x){
+  column_ords[as.character(x)] - 0.5
+})
+ml$x_max <- ml$x_min + 1
+
+
+# create gene annotation legend
+y_maxes <- cumsum(gene_cluster_ranges) 
+left_annot <- data.frame(
+  x_min = rep(13.6, num_gene_clusters),
+  x_max = rep(14.3, num_gene_clusters),
+  y_min = c(0, y_maxes[-length(y_maxes)]),
+  y_max = y_maxes,
+  Gene_Grouping = factor(paste0("Cluster ", rev(1:num_gene_clusters)))
+  
+)
+
+drug_annot <- merge(ml[!duplicated(ml$GeneSymbol), ], drug_target, by.x = "GeneSymbol", by.y = "Gene")
+drug_annot[, x_min := rep(14.3, nrow(drug_annot))]
+drug_annot[, x_max := rep(15, nrow(drug_annot))]
+drug_annot[, Approved_drug := ifelse(Target %in% c("Y", "Y/N"), "Available", "Not available")]
+
+
+# create sample annotation legend 
+top_annot <- data.frame(
+  x_min = c(-0.5, 6.5),
+  x_max = c(6.5, 13.5),
+  y_min = c(-0.2, -0.2),
+  y_max = c(-1.7, -1.7),
+  Cell_origin = factor(c( "Myeloid", "Lymphoid"))
+  
+)
+
+
+
+# define breaks and colors for sample, gene and prediction values
+colors <- c('white', RColorBrewer::brewer.pal(9, "Purples"))
+sample_annot_colors <- c(RColorBrewer::brewer.pal(9, "BrBG")[[2]], RColorBrewer::brewer.pal(9, "BrBG")[[8]])
+gene_annot_colors <- c(RColorBrewer::brewer.pal(8, "Set2")[[6]],  RColorBrewer::brewer.pal(8, "Set2")[[1]], rev(RColorBrewer::brewer.pal(8, "Set2")[2: 4]))
+drug_colors <- c(RColorBrewer::brewer.pal(8, "Greens")[[5]], RColorBrewer::brewer.pal(8, "Greys")[[3]])
+
+p_d2_raw <- ggplot() +
+  
+  scale_x_continuous(breaks=c(-1 : 13), labels=c("", names(column_ords)), guide = guide_axis(angle = 90 )) +
+  scale_y_continuous(breaks=(0 : (n_plot )), labels = c(heatmap_dt[,GeneSymbol], ""), position = "right")  +
+  
+  geom_rect(data=ml, mapping=aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, fill = value), color = 'lightgrey') +
+  scale_fill_gradientn(colours = colors) +
+  labs(fill = 'Normalized\npredicted\nprobability') + 
+  
+  ggnewscale::new_scale_fill() +
+  geom_rect(data=left_annot, mapping=aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, fill = Gene_Grouping) ) +
+  scale_fill_manual(values=rev(gene_annot_colors)) + 
+  labs(fill = 'Gene cluster') +
+  
+  ggnewscale::new_scale_fill() +
+  geom_rect(data=top_annot, mapping=aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, fill = Cell_origin) ) +
+  scale_fill_manual(values=sample_annot_colors) +
+  labs(fill = 'Cell origin') +
+  guides(fill = guide_legend(reverse = TRUE)) + 
+  
+  ggnewscale::new_scale_fill()+
+  geom_rect(data=drug_annot, mapping=aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max, fill = Approved_drug) ) +
+  scale_fill_manual(values=drug_colors) +
+  labs(fill = 'Approved drug')
+
+p_d2 <- p_d2_raw + 
+  # coord_fixed() +
+  theme_vale +
+  theme(
+    axis.text.x = element_text(margin = margin(-40), size = 8),
+    axis.text.y.right = element_text(face = "italic"),
+    # axis.text.y.right = element_text(hjust = 0.5, vjust = 0, size = 8),
+    # axis.text.y = element_text(margin = margin(-40), size = 8),
+    axis.text.y = element_text(vjust = 0, size = 8), 
+    axis.ticks = element_blank(),
+    panel.border = element_blank(),
+    panel.grid = element_blank(),
+    legend.direction = "vertical",
+    legend.box = "horizontal",
+    legend.position = "bottom",
+    legend.margin = margin(1, 1, 40, 0, "points"),
+    legend.spacing.y = unit(0.3, 'cm'),
+    plot.margin = margin(-1, 0, 0, 1, "cm"),
+    panel.background = element_rect(fill='transparent'),
+    plot.background = element_rect(fill='transparent', color=NA)
+  ) 
+
+# p_d2
+
+
+
+
+#### d1. 1 big group, prediction histogram ####
+curation_color_d1 <- c('Reported hematologic\nmalignancy driver gene'=RColorBrewer::brewer.pal(8, "Paired")[4], 
+                       'Reported cancer \ndriver gene'=RColorBrewer::brewer.pal(8, "Paired")[3], 
+                       'Candidate hematologic\nmalignancy driver gene'=RColorBrewer::brewer.pal(8, "Paired")[1])
+x_label <- heatmap_dt[,GeneSymbol]
+res_viz_pred[, GeneSymbol := factor(GeneSymbol, levels = x_label)]
+
+res_viz_pred[, curation := 'Candidate hematologic\nmalignancy driver gene']
+res_viz_pred[isCGC==TRUE, curation := 'Reported cancer \ndriver gene']
+res_viz_pred[GeneSymbol %in% mll_cgc_leukemia_gene[, GeneSymbol], 
+             curation := 'Reported hematologic\nmalignancy driver gene']
+res_viz_pred[, curation := factor(curation, levels = names(curation_color_d1))]
+#' top 100 curation
+res_viz_pred[, table(curation)]
+
+p_d1_raw <- ggplot(res_viz_pred, aes(x=GeneSymbol, y=Prediction_post, fill=curation)) +
+  geom_bar(stat='identity') +
+  scale_fill_manual(values=curation_color_d1) +
+  coord_flip()
+
+# p_d1_raw
+
+p_d1 <- p_d1_raw + 
+  scale_y_continuous(limits = c(0, 1), breaks=c(0, 0.5, 1)) +
+  scale_x_discrete(position = "top") +
+  theme_vale +
+  xlab('') +
+  ylab('Predicted probability') +
+  labs(fill = 'CGC') +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    legend.position = c(0.5, -0.145),
+    legend.margin = margin(37, 1, 5.5, 5, "points"),
+    legend.spacing.y = unit(0.3, 'cm'),
+    panel.background = element_rect(fill='transparent'),
+    plot.background = element_rect(fill='transparent', color=NA),
+    plot.margin = margin(0.3, 1, 7.9, 0, "cm")
+  )  +
+  guides(fill=guide_legend('Manual curation',
+                           title.position = "top",
+                           direction = "vertical"))
+
+# p_d1
+
+
+
+
+#### c. pie #### 
+res_100_curation <- res_viz_pred[, table(curation)]
+
+curation_top100 <- data.table(
+  Curation = names(curation_color),
+  n_gene = as.numeric(res_100_curation)
+)
+
+enrichment100 <-
+  matrix(c(res_100_curation[1], 
+           sum(res_100_curation) - res_100_curation[1], 
+           nrow(mll_cgc_leukemia_gene)-res_100_curation[1], 
+           gencode[gene_type=='protein_coding', length(unique(gene_id))] - sum(res_100_curation) - (nrow(mll_cgc_leukemia_gene)-res_100_curation[1])),
+         nrow = 2,
+         dimnames = list(is100 = c("Y", "N"),
+                         isDriver = c("Y", "N")))
+
+fisher.test(enrichment100, alternative = "greater")$estimate
+fisher.test(enrichment100, alternative = "greater")$p.value
+
+curation_top100[, Curation := factor(Curation, levels = names(curation_color))]
+curation_label <- curation_top100[, paste0(Curation, " (n=", n_gene, ')')]
+
+p_c_raw <- ggplot(curation_top100, aes(x="", y=n_gene, fill=Curation)) +
   geom_bar(width = 1, stat = "identity") +
   coord_polar("y", start=0) +
-  scale_fill_manual(values=cohort_color, labels=composition_dt[, text_label]) 
+  scale_fill_manual(values=curation_color, labels=curation_label) 
 
 p_c <- p_c_raw +
   theme_vale +
-  ggtitle(expression(paste(bolditalic("LRP1B"), bold("-activated samples from dataset (n=24)"))))+
+  ggtitle('Top 100 predicted genes') +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         panel.border = element_blank(),
         panel.grid=element_blank(),
         axis.ticks = element_blank(),
         axis.text.x=element_blank(),
-        legend.position="right",
-        legend.direction="vertical"
+        legend.position="bottom",
+        legend.direction="vertical",
+        legend.spacing.y = unit(0.3, 'cm')
   ) +
-  guides(fill=guide_legend("Disease entity"))
+  guides(fill=guide_legend("Manual curation"))
 
 # p_c
 
 
 
 
-#### d. dot/box plot mll #####
-counts_mll <- data.table(sampleID = colnames(ods_filter_out),
-                         raw_count = OUTRIDER::counts(ods_filter_out, normalized = FALSE)[geneID_LRP1B,],
-                         size_factor = OUTRIDER::sizeFactors(ods_filter_out))
-counts_mll <- merge(counts_mll, 
-                    samp_anno_lrp1b[, .(ArrayID, Diag, Cohort)] %>% unique(), 
-                    by.x='sampleID', by.y='ArrayID', all.x=TRUE, all.y=FALSE)
-counts_mll[, norm_count := (raw_count + 1)/size_factor]
-counts_mll[, Cohort := factor(Cohort, levels = c('HCL-V', 'HCL', 'MZL', 'Others'))]
+#### pharos enrichment ####
+pharos_target_pr[, table(Target_Development_Level)]
+pharos_target_pr[, length(unique(Symbol))]
 
-#' norm count median
-counts_mll[Cohort == 'HCL-V', median(norm_count)]
-counts_mll[Cohort == 'HCL', median(norm_count)]
-counts_mll[Cohort == 'MZL', median(norm_count)]
-counts_mll[Cohort == 'Others', median(norm_count)]
+pharos_target_pr[Target_Development_Level == 'Tclin', .N]
 
-stat.test <- ggpubr::compare_means(formula = norm_count ~ Cohort, data = counts_mll, method = "wilcox.test")
-# stat.test
+enrichment100 <-
+  matrix(c(drug_target[, grep("Y", Target)] %>% length(), 
+           pharos_target_pr[Target_Development_Level == 'Tclin', .N] - 18, 
+           n_plot - drug_target[, grep("Y", Target)] %>% length(), 
+           nrow(gencode_pr) - pharos_target_pr[Target_Development_Level == 'Tclin', .N] - 
+             n_plot +drug_target[, grep("Y", Target)] %>% length()),
+         nrow = 2,
+         dimnames = list(is100 = c("Y", "N"),
+                         isDrug = c("Y", "N")))
+enrichment100 
+sum(enrichment100)
 
-p_d_raw <- ggplot(counts_mll, aes(x=Cohort, y=norm_count)) +
-  geom_point(aes(colour=Cohort, fill=Cohort), alpha=0.3) + 
-  geom_boxplot(fill=NA, width=0.25)
-
-p_d_raw <- ggplot(counts_mll, aes(x=Cohort, y=norm_count)) +
-  geom_violin(aes(colour=Cohort, fill=Cohort), alpha=0.3) + 
-  geom_boxplot(fill=NA, width=0.25)+
-  stat_pvalue_manual(stat.test[c(1,4,6),], label="p.signif", y.position = 5, bracket.shorten = 0.2)+
-  scale_y_log10(
-    breaks = trans_breaks("log10", function(x) 10^x),
-    labels = trans_format("log10", math_format(10^.x)),
-  ) 
-
-# p_d_raw
-
-p_d <- p_d_raw +
-  xlab('Dataset') +
-  ylab(expression(paste(bolditalic("LRP1B"), bold(" normalized counts"))))+
-  scale_color_manual(values=cohort_color, guide = 'none') +
-  scale_fill_manual(values=cohort_color) +
-  theme_vale +
-  guides(fill=guide_legend('Disease entity', override.aes=list(color=NA)))
-
-# p_d
+fisher.test(enrichment100, alternative = "greater")
 
 
 
 
-#### fit gaussian mixture #####
-counts_marc <- data.table(sampleID = colnames(total_counts_marc),
-                          raw_count = assay(total_counts_marc)[geneID_marc,])
-counts_marc <- merge(counts_marc, size_factor_marc[, .(sampleID, `size_factor (deseq)`, sample)])
-setnames(counts_marc, 'size_factor (deseq)', 'size_factor')
-setnames(counts_marc, 'sample', 'Diag')
-counts_marc[, size_factor := sub(',', '.', size_factor) %>% as.numeric()]
-counts_marc[, norm_count := (raw_count + 1)/size_factor]
-counts_marc[Diag=='cl_HCL', Cohort:='HCL']
-counts_marc[Diag=='HCL_var', Cohort:='HCL-V']
-counts_marc_wilcox <- copy(counts_marc)
-counts_marc[, Cohort := factor(Cohort, levels = c('HCL-V', 'HCL', 'MZL', 'Others'))]
+#### check for false positive ####
+# https://bitbucket.org/intogen/intogen-plus/src/master/docs/source/postprocessing.rst
 
-# ggplot(counts_marc, aes(sample = log(norm_count))) +
-#   geom_qq() + facet_wrap(~Cohort)
+library("rjson")
+artifacts <- fromJSON(file = '/s/project/mll/intogen/working_directory/local/intogen-plus/datasets/postprocess/artifacts.json')
+artifacts[[2]]
 
-# x <- counts_marc[, norm_count]
-x <- counts_marc[, log(norm_count)]
+# one known artifiact genes
+res_viz_pred[, GeneSymbol %in% artifacts[[2]]] %>% table() 
+res_viz_pred[GeneSymbol %in% artifacts[[2]], GeneSymbol]
+# [1] TTN
+# three suspected artifiact genes
+res_viz_pred[, GeneSymbol %in% artifacts[[1]]] %>% table()
+res_viz_pred[GeneSymbol %in% artifacts[[1]], GeneSymbol]
+# [1] IGLL5 TTN   SYNE1
 
-# fit <- Mclust(x, G=2, model="V") # Gaussian mixtures with unequal variance
-fit <- Mclust(x, G=2, model="E") # Gaussian mixtures with equal variance
-summary(fit)
-predicted_class <- predict(fit)$classification
+blacklist <- fread('/s/project/mll/intogen/working_directory/local/intogen-plus/datasets/postprocess/black_listed.txt', header = F)
+# no black list
+res_viz_pred[, GeneSymbol %in% blacklist[, V1]] %>% table()
 
-counts_marc[predicted_class == 1, fitted_activation := FALSE]
-counts_marc[predicted_class == 2, fitted_activation := TRUE]
-counts_marc[, sum(fitted_activation)/.N, by='Cohort']
-counts_marc[, sum(fitted_activation), by='Cohort']
-counts_marc[, .N, by='Cohort']
 
-ggplot(counts_marc, aes(x=Cohort, y=norm_count, color=fitted_activation)) +
-  geom_point() +
-  scale_y_log10()
+olfactory <- fread('/s/project/mll/intogen/working_directory/local/intogen-plus/datasets/others/olfactory_receptors.tsv')
+# no olfactory
+res_viz_pred[, GeneSymbol %in% olfactory[, Symbol]] %>% table()
 
 
 
 
-#### e. dot/box plot marc #####
-counts_marc[, sum(fitted_activation)/.N, by='Cohort'][, V1] %>% as.character()
-
-ratio_vec <- counts_marc[, paste0( label_percent(accuracy=0.1)( sum(fitted_activation)/.N), "\n",
-                                   "(", sum(fitted_activation), "/", .N, ")"), by='Cohort'][, V1]
-
-
-
-
-p_e_raw <- ggplot(counts_marc, aes(x=Cohort, y=norm_count + 1)) +
-  geom_jitter(aes(colour=fitted_activation), width=0.1) + 
-  scale_y_log10(
-    breaks = c(1, 10, 100, 1000), 
-    minor_breaks = rep(1:9, 3)*(10^rep(0:3, each = 9))
-  ) +
-  annotate("text", x=c('HCL', 'HCL-V'), y=3000, label=ratio_vec, size = 3) +
-  annotate("text", x=0.2, y=3000, label='Percentage\n activated', size = 3) +
-  coord_cartesian(ylim=c(1,1000), xlim=c(1, 2), clip="off")
-
-# p_e_raw
-
-p_e <- p_e_raw +
-  xlab('Disease entity (validation dataset)') +
-  ylab(expression(paste(bolditalic("LRP1B"), 
-                        bold(" normalized counts + 1"))))+
-  scale_color_manual(values=c('darkgrey', 'firebrick')) +
-  theme_vale +
-  guides(color=guide_legend(expression(atop(bolditalic("LRP1B"),
-                                             bold("activated"))), 
-                            reverse = TRUE) ) + 
-  
-  theme(
-    plot.margin = margin(45, 14, 14, 30, "points"),
-    panel.border = element_rect(colour = "black", 
-                                fill=NA, linewidth=0.2)
-  )
-
-# p_e
-
-
-
-
-# #### f. coverage #####
-# hg38: 
-# exon12-14: chr2:141013556-141020102
-# exon12-14+-500: chr2:141013056-141020602
-# hg19: 
-# exon12-14: chr2:141771125-141777671
-# exon12-14+-500: chr2:141770625-141778171
-
-# # region is LRP1B exon 11 - 16
-# gr_chr <- "chr2"
-# gr_start <- 141750000
-# gr_end <- 141810000
-# gr_strand <- "-"
-# exon_range <- c(11:16)
-# 
-# # # region is LRP1B exon 12 - 14
-# # gr_chr <- "chr2"
-# # gr_start <- 141762066
-# # gr_end <- 141779012
-# # gr_strand <- "-"
-# # exon_range <- c(12:15)
-# 
-# # define region
-# gr_region <- GRanges(seqnames = gr_chr,
-#                      ranges = IRanges(gr_start, width = gr_end-gr_start+1),
-#                      strand = gr_strand)
-# 
-# # get exons
-# exonic_regions <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene)
-# exon_region <- exonic_regions[seqnames(exonic_regions) == gr_chr & 
-#                                 start(exonic_regions) > gr_start & 
-#                                 end(exonic_regions) < gr_end & 
-#                                 strand(exonic_regions) == gr_strand]
-# exon_pos <- sapply(seq_along(exon_region), function(i){
-#   c(start(exon_region[i]):end(exon_region[i]))
-# }) %>% unlist()
-# 
-# # get transcript 
-# region_dt <- exon_region %>% as.data.table() 
-# region_dt[, transcript_name:='LRP1B']
-# 
-# region_dt <- shorten_gaps(
-#   region_dt, 
-#   to_intron(region_dt, "transcript_name"), 
-#   group_var = "transcript_name",
-#   target_gap_width = 150L
-# ) %>% as.data.table()
-# region_dt[, start_mirror:=-start]
-# region_dt[, end_mirror:=-end]
-# region_dt[, number_pos := (start_mirror+end_mirror)/2, by=list(rownames(region_dt))]
-# 
-# exon_ref_dt <- region_dt[type=='exon',]
-# exon_ref_dt[, transcript_name := 'Reference']
-# exon_ref_dt[, exon_number := rev(exon_range)]
-# exon_ref_dt <- exon_ref_dt[exon_id %in% c(43120:43123), ]
-# intron_ref_dt <- region_dt[type=='intron',]
-# intron_ref_dt[, transcript_name := 'Reference']
-# 
-# exon_asm_dt <- exon_ref_dt[exon_id!='43123', ]
-# exon_asm_dt[, transcript_name := 'Assembled']
-# intron_asm_dt <- intron_ref_dt[exon_id %in% c(43120:43122), ]
-# intron_asm_dt[, transcript_name := 'Assembled']
-# 
-# exon_region_dt <- rbind(exon_asm_dt, exon_ref_dt)
-# exon_region_dt[, transcript_name := factor(transcript_name, levels=c('Reference', 'Assembled'))]
-# intron_region_dt <- rbind(intron_asm_dt, intron_ref_dt)
-# intron_region_dt[, transcript_name := factor(transcript_name, levels=c('Reference', 'Assembled'))]
-# 
-# # plot transcript
-# p_transcript_raw <- ggplot(exon_region_dt, 
-#                            aes(xstart=start_mirror, xend=end_mirror, y=transcript_name)) +
-#   geom_intron(data = intron_region_dt, aes(strand=strand), color='blue') +
-#   geom_range(fill='blue') +
-#   geom_text(aes(x=number_pos, label=exon_number), color='white')
-# 
-# # p_transcript_raw
-# 
-# p_transcript <- p_transcript_raw + 
-#   theme(
-#     axis.title.x=element_blank(),
-#     axis.text.x=element_blank(),
-#     axis.ticks.x=element_blank(),
-#     axis.title.y=element_blank(),
-#     axis.text.y=element_text(hjust = 0),
-#     axis.ticks.y=element_blank(),
-#     panel.grid.major = element_blank(), 
-#     panel.grid.minor = element_blank(),
-#     panel.background = element_blank()
-#   )
-# 
-# # p_transcript
-# 
-# 
-# # get coverage and subset for exon
-# p_coverage <- autoplot("/s/project/mll/rawdata/alignments/MLL_57538-M005.alignments.bam", which = gr_region)
-# coverage_dt <- ggplot_build(p_coverage@ggplot)$data[[1]] %>% as.data.table()
-# coverage_region <- coverage_dt[x %in% exon_pos, ]
-# setnames(coverage_region, c('x', 'y'), c('pos_ori', 'coverage'))
-# coverage_region <- coverage_region[, .(pos_ori, coverage)]
-# 
-# # get truncated gap of each pos
-# transcript_region <- copy(exon_region_dt[transcript_name=='Reference', ])
-# exon_region <- exon_region[2:5,]
-# transcript_region[, start_ori := start(exon_region)]
-# transcript_region[, end_ori := end(exon_region)]
-# transcript_region[, truncated_gaps := start_ori - start]
-# transcript_region <- transcript_region[, .(start_ori, end_ori, start, truncated_gaps)]
-# 
-# transcript_region <- do.call("rbind", replicate(length(exon_pos), transcript_region, simplify = FALSE))
-# transcript_region[, pos_ori:=rep(exon_pos, each=length(exon_region))]
-# subset_vec <- transcript_region[, pos_ori %in% c(start_ori:end_ori), by=rownames(transcript_region)]$V1
-# transcript_region <- transcript_region[subset_vec, ]
-# 
-# coverage_region <- merge(coverage_region, transcript_region, by='pos_ori')
-# coverage_region[, pos := pos_ori-truncated_gaps]
-# coverage_region[, pos_mirror := -pos]
-# 
-# # plot coverage
-# p_coverage_raw <- ggplot(coverage_region, aes(x=pos_mirror,y=coverage))+
-#   geom_bar(stat = "identity")
-# 
-# # p_coverage_raw
-# 
-# p_coverage <- p_coverage_raw + 
-#   theme(
-#     axis.title.x=element_blank(),
-#     axis.text.x=element_blank(),
-#     axis.ticks.x=element_blank(),
-#     axis.title.y=element_blank(),
-#     axis.text.y=element_blank(),
-#     axis.ticks.y=element_blank(),
-#     panel.grid.major = element_blank(), 
-#     panel.grid.minor = element_blank(),
-#     panel.background = element_blank(),
-#     plot.margin = margin(0,1,0,2.5, "cm")
-#   )
-# 
-# # p_coverage
-# 
-# p_e_raw <- ggarrange(p_coverage_raw, p_transcript_raw, ncol=1)
-# # p_e_raw
-# 
-# p_e <- ggarrange(p_coverage, p_transcript, ncol=1)
-# # p_e
-
-
-
-
-### arrange plot ####
+### arrange plot - heatmap #### 
 #' ### raw
-#+ plot p4 raw, fig.width=10, fig.height=7.5
-p4_raw_bottom <- ggarrange(p_b_raw, p_e_raw, 
-                           ncol = 2, nrow = 1, labels = c("B", "C"))
-p4_raw <- ggarrange(p_a_raw, p4_raw_bottom,
-                    ncol = 1, nrow = 2, labels=c("A", ""), heights = c(3.5, 4))
+#+ plot p4 raw, fig.width=10, fig.height=14
+p_abc_raw <- ggarrange(p_a_raw, p_b_raw, p_c_raw, ncol = 1, labels = c('A', 'B', 'C'), heights = c(1, 1, 0.8))
+p_d_raw <- ggarrange(p_d1_raw, p_d2_raw, nrow = 1, labels = c(' ', ' '), widths = c(1, 0.4))
 
+p4_raw <- ggarrange(p_abc_raw, p_d_raw, nrow = 1, widths = c(1,1.5), labels = c('', 'D'))
 p4_raw
 
 #' ### annotated
-#+ plot p4, fig.width=10, fig.height=7.5
-p4_bottom <- ggarrange(p_b, p_e, 
-                       ncol = 2, nrow = 1, labels = c("B", "C"))
-p4 <- ggarrange(p_a, p4_bottom,
-                ncol = 1, nrow = 2, labels=c("A", ""), heights = c(3.5, 4))
+#+ plot p4, fig.width=10, fig.height=14
+p_abc <- ggarrange(p_a, p_b, p_c, ncol = 1, labels = c('A', 'B', 'C'), heights = c(1, 1, 0.8))
+p_d <- ggarrange(p_d2, p_d1, nrow = 1, labels = c(' ', ' '), widths = c(1, 0.4))
 
+p4 <- ggarrange(p_abc, p_d, nrow = 1, widths = c(1,1.5), labels = c('', 'D'))
 p4
 
 
-pdf(paste0(output_dir, "/figure_4.pdf"), width = 10, height = 7.5)
-p4_bottom <- ggarrange(p_b, p_e, 
-                       ncol = 2, nrow = 1, labels = c("B", "C"))
-p4 <- ggarrange(p_a, p4_bottom,
-                ncol = 1, nrow = 2, labels=c("A", ""), heights = c(3.5, 4))
+saveRDS(p_c, snakemake@output$p_c)
+saveRDS(p_d, snakemake@output$p_d)
 
+# png(paste0(output_dir, "/figure_4_poster.png"), width = 10, height = 16, units = "in", res = 600)
+# p_abc <- ggarrange(p_a, p_b, p_c, ncol = 1, labels = c('A', 'B', 'C'), heights = c(1, 1, 0.8))
+# p_d <- ggarrange(p_d2, p_d1, nrow = 1, labels = c(' ', ' '), widths = c(1, 0.4))
+# 
+# p4 <- ggarrange(p_abc, p_d, nrow = 1, widths = c(1,1.5), labels = c('', 'D'))
+# p4
+# dev.off()
+
+
+pdf(paste0(output_dir, "/figure_4.pdf"), width = 10, height = 14)
+p_abc <- ggarrange(p_a, p_b, p_c, ncol = 1, labels = c('A', 'B', 'C'), heights = c(1, 1, 0.8))
+p_d <- ggarrange(p_d2, p_d1, nrow = 1, labels = c(' ', ' '), widths = c(1, 0.4))
+
+p4 <- ggarrange(p_abc, p_d, nrow = 1, widths = c(1,1.5), labels = c('', 'D'))
 p4
 dev.off()
 
 
-png(paste0(output_dir, "/figure_4.png"), width = 10, height = 7.5, units = "in", res = 600)
-p4_bottom <- ggarrange(p_b, p_e, 
-                       ncol = 2, nrow = 1, labels = c("B", "C"), widths = c(1, 1.2))
-p4 <- ggarrange(p_a, p4_bottom,
-                ncol = 1, nrow = 2, labels=c("A", ""), heights = c(3.5, 4))
+png(paste0(output_dir, "/figure_4.png"), width = 10, height = 14, units = "in", res = 600)
+p_abc <- ggarrange(p_a, p_b, p_c, ncol = 1, labels = c('A', 'B', 'C'), heights = c(1, 1, 0.8))
+p_d <- ggarrange(p_d2, p_d1, nrow = 1, labels = c(' ', ' '), widths = c(1, 0.4))
 
+p4 <- ggarrange(p_abc, p_d, nrow = 1, widths = c(1,1.5), labels = c('', 'D'))
 p4
 dev.off()
 
 
 
-
-#' ## Sup
 ### Supplement #####
-#### s1. survival curve #####
-# Read combined KM data and format
-lrp1b_survival <- read.xlsx(snakemake@params$lrp1b_survival) 
-# udpate lrp1b high def
-lrp1b_survival$LRP1B_high <- as.numeric(lrp1b_survival$Array.ID %in% lrp1b_act_samples) 
-
-lrp1b_survival <- lrp1b_survival %>%
-  mutate(OS_years = OS_days/365,
-         cohort = factor(LRP1B_high, levels = c("0", "1")))
-
-# Fit survival models
-survival_fit <- survfit(Surv(OS_years, Zensor_OS) ~ cohort, data = lrp1b_survival)
-
-# Plot  
-#' ### s1
-p_s1 <- ggsurvplot(survival_fit,
-                  pval = TRUE,
-                  conf.int = FALSE,
-                  censor= TRUE,
-                  censor.shape = "I",
-                  title = NULL,
-                  xlab = "Time (years)",
-                  ylab = "Survival probability",
-                  legend = "right",
-                  legend.title = "Categories",
-                  legend.labs = c("LRP1B non-activated", "LRP1B activated"),
-                  palette = c("grey", "red"),
-                  axes.offset = FALSE, 
-                  break.x.by = 1,
-                  break.y.by = 0.1,
-                  xlim = c(0, 10.5),
-                  ylim = c(0, 1),
-                  risk.table = TRUE,
-                  surv.median.line = "h"
-)
-
-#+ plot s1, fig.width=8, fig.height=6
+#' ## Sup
+#' ### s1 raw
+#+ plot s1 raw, fig.width=6, fig.height=6
+p_s1_raw
+#' ### s1 annotated
+#+ plot s1, fig.width=6, fig.height=6
 p_s1
 
+#' ### s2 raw
+#+ plot s2 raw, fig.width=6, fig.height=6
+p_s2_raw
+#' ### s2 annotated
+#+ plot s2, fig.width=6, fig.height=6
+p_s2
 
+#' ### s3 raw
+#+ plot s3 raw, fig.width=8, fig.height=4
+p_s3_raw
+#' ### s3 annotated
+#+ plot s3, fig.width=8, fig.height=4
+p_s3
 
+#' ### s4 raw
+#+ plot s4 raw, fig.width=10.5, fig.height=6
+p_s4_raw
+#' ### s4 annotated
+#+ plot s4, fig.width=10.5, fig.height=6
+p_s4
 
-#### s2. ac enrichment heatmap #####
-#' ### s2 ac
-heatmap_dt <- diag_fisher[input_res == 'ac', ]
+#' ### s5 raw
+#+ plot s5 raw, fig.width=12, fig.height=6
+p_s5_raw
+#' ### s5 annotated
+#+ plot s5, fig.width=12, fig.height=6
+p_s5
 
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, geneSymbol ~ Diag, value.var = 'oddsr', fill=0)
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[,geneSymbol]
-heatmap_mtx[heatmap_mtx==Inf] <- max(heatmap_mtx[heatmap_mtx!=Inf])
+#' ### s8 raw
+#+ plot s8 raw, fig.width=19, fig.height=6
+p_s8_raw
+#' ### s8 annotated
+#+ plot s8, fig.width=9, fig.height=6
+p_s8
 
-# name cohort as manuscript
-colnames(heatmap_mtx) <- sapply(colnames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# define breaks and colors
-breaks <- c(0, 10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-
-#+ plot s2, fig.width=8, fig.height=10
-p_s2 <- pheatmap(heatmap_mtx,
-                 color=colors, breaks=breaks, legend_breaks=breaks, legend=T,
-                 # cluster_rows=F, cluster_cols=F, na_col = "grey",
-                 angle_col = 90
-)
-grid.text('Enrichment of activated outliers', x = 0.5, y = 0.99)
-
-
-
-
-#### s3. or_up enrichment heatmap #####
-#' ### s3 or_up
-heatmap_dt <- diag_fisher[input_res == 'or_up', ]
-
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, geneSymbol ~ Diag, value.var = 'oddsr', fill=0)
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[,geneSymbol]
-heatmap_mtx[heatmap_mtx==Inf] <- max(heatmap_mtx[heatmap_mtx!=Inf])
-
-# name cohort as manuscript
-colnames(heatmap_mtx) <- sapply(colnames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# define breaks and colors
-breaks <- c(0, 10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-
-#+ plot s3, fig.width=8, fig.height=10
-p_s3 <- pheatmap(heatmap_mtx,
-                 color=colors, breaks=breaks, legend_breaks=breaks, legend=T,
-                 # cluster_rows=F, cluster_cols=F, na_col = "grey",
-                 angle_col = 90
-)$gtable
-grid.text('Enrichment of over-expressed outliers', x = 0.5, y = 0.99)
-
-
-
-
-#### s4. or_dn enrichment heatmap #####
-#' ### s4 or_dn
-heatmap_dt <- diag_fisher[input_res == 'or_dn', ]
-
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, geneSymbol ~ Diag, value.var = 'oddsr', fill=0)
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[,geneSymbol]
-heatmap_mtx[heatmap_mtx==Inf] <- max(heatmap_mtx[heatmap_mtx!=Inf])
-
-# name cohort as manuscript
-colnames(heatmap_mtx) <- sapply(colnames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# define breaks and colors
-breaks <- c(0, 10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-
-#+ plot s4, fig.width=8, fig.height=10
-p_s4 <- pheatmap(heatmap_mtx,
-                 color=colors, breaks=breaks, legend_breaks=breaks, legend=T,
-                 # cluster_rows=F, cluster_cols=F, na_col = "grey",
-                 angle_col = 90
-)$gtable
-grid.text('Enrichment of under-expressed outliers', x = 0.5, y = 0.99)
-
-
-
-
-#### s5. fr enrichment heatmap #####
-#' ### s5 fr
-heatmap_dt <- diag_fisher[input_res == 'fr', ]
-
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, geneSymbol ~ Diag, value.var = 'oddsr', fill=0)
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[,geneSymbol]
-heatmap_mtx[heatmap_mtx==Inf] <- max(heatmap_mtx[heatmap_mtx!=Inf])
-
-# name cohort as manuscript
-colnames(heatmap_mtx) <- sapply(colnames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# define breaks and colors
-breaks <- c(0, 10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-
-#+ plot s5, fig.width=8, fig.height=10
-p_s5 <- pheatmap(heatmap_mtx,
-                 color=colors, breaks=breaks, legend_breaks=breaks, legend=T,
-                 # cluster_rows=F, cluster_cols=F, na_col = "grey",
-                 angle_col = 90
-)$gtable
-grid.text('Enrichment of splicing outliers', x = 0.5, y = 0.99)
-
-
-
-
-#### s6. absplice enrichment heatmap #####
-#' ### s6 absplice
-heatmap_dt <- diag_fisher[input_res == 'absplice', ]
-
-heatmap_dt <- heatmap_dt[, .(Diag, geneSymbol, oddsr)] 
-heatmap_dt <- dcast(heatmap_dt, geneSymbol ~ Diag, value.var = 'oddsr', fill=0)
-heatmap_mtx <- as.matrix(heatmap_dt[,-1])
-rownames(heatmap_mtx) <- heatmap_dt[,geneSymbol]
-heatmap_mtx[heatmap_mtx==Inf] <- max(heatmap_mtx[heatmap_mtx!=Inf])
-
-# name cohort as manuscript
-colnames(heatmap_mtx) <- sapply(colnames(heatmap_mtx), function(x){
-  manuscript_wording[Cohort_during_analysis==x, Cohort_abbreviation]
-}) %>% unlist()
-
-# define breaks and colors
-breaks <- c(0, 10^(0:ceiling(log10(max(heatmap_mtx, na.rm = TRUE)))))
-colors <- c('white', brewer.pal(length(breaks)-1, "Purples"))
-
-#+ plot s6, fig.width=8, fig.height=10
-p_s6 <- pheatmap(heatmap_mtx,
-                 color=colors, breaks=breaks, legend_breaks=breaks, legend=T,
-                 # cluster_rows=F, cluster_cols=F, na_col = "grey",
-                 angle_col = 90
-)$gtable
-grid.text('Enrichment of splicing variants', x = 0.5, y = 0.99)
+#' ### s9 raw
+#+ plot s9 raw, fig.width=13.5, fig.height=4
+p_s9_raw
+#' ### s9 annotated
+#+ plot s9, fig.width=13.5, fig.height=4
+p_s9
 
 
 
 
 ### thesis ####
 png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
-           "lrp1b_heatmap.png"), 
-    width = 8, height = 3, units = "in", res = 600)
+           "ap_ind.png"), 
+    width = 5, height = 6, units = "in", res = 600)
 p_a
 dev.off() 
 
 png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
-           "lrp1b_mll.png"), 
-    width = 4, height = 4, units = "in", res = 600)
+           "prc_ind.png"), 
+    width = 6, height = 6, units = "in", res = 600)
+p_s1
+dev.off() 
+
+png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
+           "ap_accu.png"), 
+    width = 5, height = 6, units = "in", res = 600)
 p_b
 dev.off() 
 
 png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
-           "lrp1b_marc.png"), 
-    width = 4, height = 4, units = "in", res = 600)
-p_e
+           "prc_accu.png"), 
+    width = 6, height = 6, units = "in", res = 600)
+p_s2
 dev.off() 
 
 png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
-           "lrp1b_survival.png"), 
-    width = 8, height = 6, units = "in", res = 600)
-p_s1
+           "model_all_pie.png"), 
+    width = 4, height = 4, units = "in", res = 600)
+p_c
+dev.off() 
+
+png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
+           "model_benchmark.png"), 
+    width = 8, height = 4, units = "in", res = 600)
+p_s3
+dev.off() 
+
+p_d <- ggarrange(p_d2, p_d1, nrow = 1, widths = c(1, 0.4))
+
+png(paste0("/s/project/vale/driver_prediction_202304/Output/html/thesis/", 
+           "model_heatmap.png"), 
+    width = 6, height = 14, units = "in", res = 600)
+p_d
 dev.off() 

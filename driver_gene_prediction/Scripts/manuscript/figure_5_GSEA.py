@@ -37,12 +37,12 @@ from gseapy.plot import gseaplot
 # |  ledge_genes: leading edge genes}
 
 # %%
-snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/figure_4_GSEA.p"
+snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/figure_5_GSEA.p"
 pickle.dump(snakemake, open(snakemake_path, "wb")) 
 
 # %%
 # # read in snakemake object
-# file = open("/s/project/vale/driver_prediction_202303_2/processed_data/snakemake/figure_4_GSEA.p",'rb')
+# file = open("/s/project/vale/driver_prediction_202303_2/processed_data/snakemake/figure_5_GSEA.p",'rb')
 # snakemake = pickle.load(file)
 
 # %%
@@ -51,7 +51,7 @@ gencode = gencode.loc[gencode.gene_type=='protein_coding']
 
 # %%
 output_path = snakemake.output.diag_fisher_gsea
-output_dir = snakemake.params.projectPath + "/manuscript/figure_4/plot_data/gsea"
+output_dir = snakemake.params.projectPath + "/manuscript/figure_5/plot_data/gsea"
 if not os.path.exists(output_dir):
    os.makedirs(output_dir)
 
@@ -65,7 +65,7 @@ hallmark_gs = gp.get_library(name="MSigDB_Hallmark_2020")
 
 # %%
 diag_fisher = pd.read_csv(snakemake.input.diag_fisher, sep='\t')
-# diag_fisher = pd.read_csv('/s/project/vale/driver_prediction_202303_2/manuscript/figure_4/plot_data/diag_fisher.tsv', sep='\t')
+# diag_fisher = pd.read_csv('/s/project/vale/driver_prediction_202303_2/manuscript/figure_5/plot_data/diag_fisher.tsv', sep='\t')
 
 # %%
 gene_sets_list = ['MSigDB_Hallmark_2020', 'MSigDB_Oncogenic_Signatures']

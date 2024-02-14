@@ -1,5 +1,5 @@
 #'---
-#' title: figure_5_prep_benchmark
+#' title: figure_4_prep_benchmark
 #' author: Xueqi Cao
 #' wb:
 #'  py:
@@ -16,20 +16,21 @@
 #'    - inputDatasets: '`sm inputDatasets`'
 #'    - outputDatasets: '`sm outputDatasets`'
 #'    - intogenDir: '`sm config["intogenDir"]`'
+#'    - vep_path: '`sm config["vep_path"]`'   
 #'    - mutsigCVdir: '`sm config["mutsigCVdir"]`'
 #'    - htmlOutputPath: '`sm config["htmlOutputPath"] + "/manuscript"`'
 #'  output:
 #'    - mll_benchmark: '`sm config["projectPath"] + 
-#'                      "/manuscript/figure_5/plot_data/mll_benchmark.tsv"`'
+#'                      "/manuscript/figure_4/plot_data/mll_benchmark.tsv"`'
 #'  type: script
 #'  resources:
-#'    - mem_mb: 8000 
+#'    - mem_mb: 16000 
 #'---
 
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
-                             "/processed_data/snakemake/figure_5_prep_benchmark.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202304/processed_data/snakemake/figure_5_prep_benchmark.snakemake")
+                             "/processed_data/snakemake/figure_4_prep_benchmark.snakemake"))
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202401/processed_data/snakemake/figure_4_prep_benchmark.snakemake")
 print("Snakemake saved") 
 
 
@@ -42,6 +43,7 @@ suppressPackageStartupMessages({
 source("Scripts/manuscript/function.R")
 
 intogen_dir <- snakemake@params$intogenDir
+vep_dir <- snakemake@params$vep_path
 mutsigcv_dir <- snakemake@params$mutsigCVdir
 project_dir <- snakemake@params$projectPath
 experiment_design <- fread(snakemake@params$experimentDesign)
@@ -50,13 +52,13 @@ experiment_design[is.na(experiment_design)] <- ''
 
 
 #### VALE: 7+4 #### 
-exp_viz<- experiment_design[label_gene_list == 'CGC_leukemia_gene' &
+exp_viz<- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
                               model_method == 'rf' &
                               intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
                               outlier_input_feature == 'or,ac,absplice,fr' &
                               coess_input_feature == '', ]
 
-exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir)
+exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
 
 
 if(exists("res_viz_groups")){remove(res_viz_groups)}
@@ -81,13 +83,13 @@ res_vale[, Method := 'vale']
 
 
 #### VALE: 7 #### 
-exp_viz<- experiment_design[label_gene_list == 'CGC_leukemia_gene' &
+exp_viz<- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
                               model_method == 'rf' &
                               intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
                               outlier_input_feature == '' &
                               coess_input_feature == '', ]
 
-exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir)
+exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
 
 
 if(exists("res_viz_groups")){remove(res_viz_groups)}
@@ -195,10 +197,11 @@ res_7tools_paths <- list.files(paste0(project_dir, '/processed_data/intogen_feat
 res_7tools_ls <- lapply(res_7tools_paths, function(i){
   res_7tools_temp <- fread(i)
   setnames(res_7tools_temp, 'gene_name', 'GeneSymbol')
-  setnames(res_7tools_temp, 'group', 'Sample_group')
+  setnames(res_7tools_temp, 'group', 'SAMPLE_GROUP')
   res_7tools_temp[, Prediction := 1-exp(-score)]
-  res_7tools_temp <- merge(res_7tools_temp, res_ref[, .(GeneID, GeneSymbol, Label, Sample_group)], 
-                           by = c('GeneSymbol', 'Sample_group'), all.x = FALSE, all.y = TRUE)
+  res_7tools_temp <- merge(res_7tools_temp, 
+                           res_ref[, .(GeneID, GeneSymbol, Label, SAMPLE_GROUP, Sample_group)], 
+                           by = c('GeneSymbol', 'SAMPLE_GROUP'), all.x = FALSE, all.y = TRUE)
   res_7tools_temp <- res_7tools_temp[, .(GeneID, GeneSymbol, Prediction, Label, Sample_group)]
   res_7tools_temp[, Method := tail(strsplit(i, '/|[.]')[[1]], n=2)[1]]
   res_7tools_temp <- res_7tools_temp[order(-Prediction),]

@@ -1,0 +1,28 @@
+name: nn_ata
+channels:
+  - pytorch
+  - nvidia
+  - anaconda
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+    - python=3.10.6=ha86cf86_0_cpython
+    - pickleshare=0.7.5=pyhd3eb1b0_1003
+    - pandas=2.0.3=py310h1128e8f_0 
+    - pytorch=2.1.0=py3.10_cuda12.1_cudnn8.9.2_0
+    - pytorch-cuda=12.1=ha16c6d3_5
+    - pytorch-mutex=1.0=cuda
+    - torchaudio=2.1.0=py310_cu121
+    - torchtriton=2.1.0=py310
+    - torchvision=0.16.0=py310_cu121
+    - numpy=1.25.0
+    
+    - pip:
+        - tqdm==4.64.1
+        - xgboost==1.6.1
+        - scikit-learn==1.0.2
+        - scipy==1.8.0
+        - tensorboard==2.15.1
+        - tensorboard-data-server==0.7.2   

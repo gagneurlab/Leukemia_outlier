@@ -17,7 +17,7 @@
 #'    - manuscriptWording: '`sm config["manuscriptWording"]`'
 #'  input:
 #'    - diagFisher: '`sm config["projectPath"] + 
-#'                     "/manuscript/figure_4/plot_data/diag_fisher.tsv"`'
+#'                     "/manuscript/figure_5/plot_data/diag_fisher.tsv"`'
 #'  output:
 #'    - association_tab: '`sm config["projectPath"] + 
 #'                     "/manuscript/sup_table/association_tab.csv"`'

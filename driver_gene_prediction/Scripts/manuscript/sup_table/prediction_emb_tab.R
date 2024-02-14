@@ -1,5 +1,5 @@
 #'---
-#' title: prediction_tab
+#' title: prediction_emb_tab
 #' author: Xueqi Cao
 #' wb:
 #'  py:
@@ -21,17 +21,17 @@
 #'    - htmlOutputPath: '`sm config["htmlOutputPath"] + "/manuscript"`'
 #'    - manuscriptWording: '`sm config["manuscriptWording"]`'
 #'  output:
-#'    - prediction_all_tab: '`sm config["projectPath"] + 
-#'                           "/manuscript/sup_table/prediction_all_tab.csv"`'
-#'    - prediction_diag_tab: '`sm config["projectPath"] + 
-#'                           "/manuscript/sup_table/prediction_diag_tab.csv"`'
+#'    - prediction_emb_all_tab: '`sm config["projectPath"] + 
+#'                           "/manuscript/sup_table/prediction_emb_all_tab.csv"`'
+#'    - prediction_emb_diag_tab: '`sm config["projectPath"] + 
+#'                           "/manuscript/sup_table/prediction_emb_diag_tab.csv"`'
 #'  type: script
 #'---
 
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
-                             "/processed_data/snakemake/prediction_tab.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202304/processed_data/snakemake/prediction_tab.snakemake")
+                             "/processed_data/snakemake/prediction_emb_tab.snakemake"))
+# snakemake <- readRDS("/s/project/vale/driver_prediction_202401/processed_data/snakemake/prediction_emb_tab.snakemake")
 print("Snakemake saved") 
 
 
@@ -62,16 +62,31 @@ exp_viz <- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
                                model_method == 'rf' &
                                intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
                                outlier_input_feature == 'or,ac,absplice,fr' &
-                               coess_input_feature == '', ]
+                               coess_input_feature != '', ]
 
 exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
 
 
 # vale
-res_leu14 <- fread(exp_viz[, res_post_path])
-res_leu14[, StudyGroup := 'Pan-leukemia']
-res_leu14 <- res_leu14[, .(GeneID, GeneSymbol, StudyGroup, Label, Rank, Prediction, isCGC, RoleCGC, isIntOGen, RoleIntogen)]
-fwrite(res_leu14, snakemake@output$prediction_all_tab) 
+if(exists("res_leu14")){remove(res_leu14)}
+
+for (i in 1:nrow(exp_viz)) {
+  res_temp <- fread(exp_viz[i, res_post_path])
+  
+  sample_group <- exp_viz[i, sample_group]
+  sample_group_manuscript <- manuscript_wording[Study_group_during_analysis==sample_group, Study_group] %>% unique()
+  res_temp[, StudyGroup := 'Pan-leukemia']
+  res_temp[, ExternalFeature := exp_viz[i, coess_input_feature]]
+  
+  res_temp <- res_temp[, .( GeneID, GeneSymbol, StudyGroup, ExternalFeature, Label, Rank, Prediction, isCGC, RoleCGC, isIntOGen, RoleIntogen)]
+  
+  if(!exists("res_leu14")){
+    res_leu14 <- res_temp
+  }else{
+    res_leu14 <- rbind(res_leu14, res_temp, fill=TRUE)
+  }}
+
+fwrite(res_leu14, snakemake@output$prediction_emb_all_tab) 
 
 
 #### each group #### 
@@ -80,7 +95,7 @@ exp_viz <- experiment_design[label_gene_list == 'MLL_CGC_leukemia_gene' &
                                model_method == 'rf' &
                                intogen_input_feature == 'clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv' &
                                outlier_input_feature == 'or,ac,absplice,fr' &
-                               coess_input_feature == '', ]
+                               coess_input_feature != '', ]
 
 exp_viz <- add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
 
@@ -93,12 +108,14 @@ for (i in 1:nrow(exp_viz)) {
   sample_group <- exp_viz[i, sample_group]
   sample_group_manuscript <- manuscript_wording[Study_group_during_analysis==sample_group, Study_group] %>% unique()
   res_temp[, StudyGroup := sample_group_manuscript]
+  res_temp[, ExternalFeature := exp_viz[i, coess_input_feature]]
   
-  res_temp <- res_temp[, .( GeneID, GeneSymbol, StudyGroup, Label, Rank, Prediction, isCGC, RoleCGC, isIntOGen, RoleIntogen)]
+  res_temp <- res_temp[, .( GeneID, GeneSymbol, StudyGroup, ExternalFeature, Label, Rank, Prediction, isCGC, RoleCGC, isIntOGen, RoleIntogen)]
   
   if(!exists("res_groups")){
     res_groups <- res_temp
   }else{
     res_groups <- rbind(res_groups, res_temp, fill=TRUE)
   }}
-fwrite(res_groups, snakemake@output$prediction_diag_tab) 
+
+fwrite(res_groups, snakemake@output$prediction_emb_diag_tab) 

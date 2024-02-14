@@ -26,12 +26,12 @@ from scipy.stats import fisher_exact
 import statsmodels.stats.multitest as smt
 
 # %%
-snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/figure_4_prep_enrichment.p"
+snakemake_path = snakemake.params.projectPath + "/processed_data/snakemake/figure_5_prep_enrichment.p"
 pickle.dump(snakemake, open(snakemake_path, "wb")) 
 
 # %%
 # # read in snakemake object
-# file = open("/s/project/vale/driver_prediction_202304/processed_data/snakemake/figure_4_prep_enrichment.p",'rb')
+# file = open("/s/project/vale/driver_prediction_202304/processed_data/snakemake/figure_5_prep_enrichment.p",'rb')
 # snakemake = pickle.load(file)
 
 # %%

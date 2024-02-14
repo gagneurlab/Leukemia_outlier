@@ -22,8 +22,6 @@ if not os.path.isdir(config['projectPath'] + "/processed_data"):
   
 if not os.path.isdir(config['projectPath'] + "/processed_results"): 
   os.mkdir(config['projectPath'] + "/processed_results")
-  os.mkdir(config['projectPath'] + "/processed_results/pre")
-  os.mkdir(config['projectPath'] + "/processed_results/post")
   
 if not os.path.isdir(config['projectPath'] + "/Output"): 
   os.mkdir(config['projectPath'] + "/Output")
@@ -34,7 +32,15 @@ if not os.path.isdir(config['projectPath'] + "/Output"):
 experimentDesign = pd.read_csv(config["experimentDesign"], sep='\t')
 experimentDesign = experimentDesign.fillna('')
 experimentDesign = experimentDesign.loc[
-    (np.isin(experimentDesign.model_method, ['rf']))
+    (np.isin(experimentDesign.model_method, ['xgb_op']))
+]
+
+experimentDesign_nn = experimentDesign.loc[
+    (np.isin(experimentDesign.model_method, ['nn'])) 
+]
+
+experimentDesign_lr_rf_xbg = experimentDesign.loc[
+    (np.isin(experimentDesign.model_method, ['nn'], invert=True))
 ]
 
 
@@ -47,7 +53,9 @@ rule all:
         htmlOutputPath + "/readme.html",
         config['tmpDirPath'] + "/generate_label.done",
         config['tmpDirPath'] + "/prediction.done",
-        config['tmpDirPath'] + "/postprocessing.done"
+        config['tmpDirPath'] + "/prediction_nn.done",
+        config['tmpDirPath'] + "/postprocessing.done",
+        config['tmpDirPath'] + "/postprocessing_nn.done"
     output: 
         touch(config['tmpDirPath'] + "/all.done")
         
@@ -175,7 +183,7 @@ rule prediction:
     resources:
         mem_mb = 6000
     params:
-        sampID = "{exp_no}",
+        sampID = "{exp_no_lr_rf_xbg}",
         projectPath=config['projectPath']
     input:
         label=rules.preprocessing_label_generate_label_list_R.output,
@@ -183,24 +191,49 @@ rule prediction:
         features_partial=config["projectPath"] + '/processed_data/features_partial.tsv',
         features_full=config["projectPath"] + '/processed_data/features_full.tsv'
     output:
-        result=config["projectPath"] + '/processed_results/pre/result_{exp_no}.tsv',
-        coeff=config["projectPath"] + '/processed_results/pre/coeff_{exp_no}.tsv'
+        result=config["projectPath"] + '/processed_results/pre_lr_rf_xbg/result_{exp_no_lr_rf_xbg}.tsv',
+        coeff=config["projectPath"] + '/processed_results/pre_lr_rf_xbg/coeff_{exp_no_lr_rf_xbg}.tsv'
     script: 
         "Scripts/prediction/prediction.py"
         
+rule prediction_nn:
+    resources:
+        mem_mb = 8000
+    params:
+        sampID = "{exp_no_nn}",
+        projectPath=config['projectPath']
+    input:
+        label=rules.preprocessing_label_generate_label_list_R.output,
+        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
+        features_partial=config["projectPath"] + '/processed_data/features_partial.tsv',
+        features_full=config["projectPath"] + '/processed_data/features_full.tsv'
+    output:
+        result=config["projectPath"] + '/processed_results/pre_nn/result_{exp_no_nn}.tsv',
+        coeff=config["projectPath"] + '/processed_results/pre_nn/coeff_{exp_no_nn}.tsv'
+    script: 
+        "Scripts/prediction/prediction.py"
+         
 rule prediction_done:
     input:
-        result_post=expand(config["projectPath"] + '/processed_results/pre/result_{exp_no}.tsv', exp_no=experimentDesign['experiment_no']),
-        coeff=expand(config["projectPath"] + '/processed_results/pre/coeff_{exp_no}.tsv', exp_no=experimentDesign['experiment_no'])
+        result=expand(config["projectPath"] + '/processed_results/pre_lr_rf_xbg/result_{exp_no_lr_rf_xbg}.tsv', exp_no_lr_rf_xbg=experimentDesign_lr_rf_xbg['experiment_no']),
+        coeff=expand(config["projectPath"] + '/processed_results/pre_lr_rf_xbg/coeff_{exp_no_lr_rf_xbg}.tsv', exp_no_lr_rf_xbg=experimentDesign_lr_rf_xbg['experiment_no'])
     output:
         touch(config['tmpDirPath'] + "/prediction.done")
         
+rule prediction_nn_done:
+    input:
+        result=expand(config["projectPath"] + '/processed_results/pre_nn/result_{exp_no_nn}.tsv', exp_no_nn=experimentDesign_nn['experiment_no']),
+        coeff_nn=expand(config["projectPath"] + '/processed_results/pre_nn/coeff_{exp_no_nn}.tsv', exp_no_nn=experimentDesign_nn['experiment_no'])
+    output:
+        touch(config['tmpDirPath'] + "/prediction_nn.done")
+              
 rule postprocessing:
     params:
-        sampID = "{exp_no}",
+        sampID = "{exp_no_lr_rf_xbg}",
         tmpDirPath=config["tmpDirPath"],
         projectPath = config["projectPath"],
         intogenDir = config["intogenDir"],
+        vep_path = config["vep_path"],
         outriderDir = config["outriderDir"],
         fraserDir = config["fraserDir"],
         absplice = config["abspliceDir"],
@@ -215,42 +248,98 @@ rule postprocessing:
         experimentDesign=config["projectPath"] + '/experiment_design.tsv',
         features_partial=config["projectPath"] + '/processed_data/features_partial.tsv',
         features_full=config["projectPath"] + '/processed_data/features_full.tsv',
-        result=config["projectPath"] + '/processed_results/pre/result_{exp_no}.tsv'
+        result=config["projectPath"] + '/processed_results/pre_lr_rf_xbg/result_{exp_no_lr_rf_xbg}.tsv'
     output:
-        result_post=config["projectPath"] + '/processed_results/post/result_{exp_no}.tsv',
-        rank_proportion=config["projectPath"] + '/processed_results/post/rp_{exp_no}.tsv'
+        result_post=config["projectPath"] + '/processed_results/post_lr_rf_xbg/result_{exp_no_lr_rf_xbg}.tsv',
+        rank_proportion=config["projectPath"] + '/processed_results/post_lr_rf_xbg/rp_{exp_no_lr_rf_xbg}.tsv'
+    script: 
+        "Scripts/postprocessing/postprocessing.py"
+        
+rule postprocessing_nn:
+    params:
+        sampID = "{exp_no_nn}",
+        tmpDirPath=config["tmpDirPath"],
+        projectPath = config["projectPath"],
+        intogenDir = config["intogenDir"],
+        outriderDir = config["outriderDir"],
+        fraserDir = config["fraserDir"],
+        absplice = config["abspliceDir"],
+        coess_modules = config["coess_modules"],
+        samp_anno=config['sampleAnnotation'],
+        gencode=config['gencode'],
+        intogen_cancer_gene=config["IntOGen_cancer_gene"],
+        cgc_cancer_gene_processed=rules.preprocessing_label_generate_label_list_R.output[0],
+        predictedConsequence = config["predictedConsequence"]
+    input:
+        config['tmpDirPath'] + "/prediction_nn.done",
+        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
+        features_partial=config["projectPath"] + '/processed_data/features_partial.tsv',
+        features_full=config["projectPath"] + '/processed_data/features_full.tsv',
+        result=config["projectPath"] + '/processed_results/pre_nn/result_{exp_no_nn}.tsv'
+    output:
+        result_post=config["projectPath"] + '/processed_results/post_nn/result_{exp_no_nn}.tsv',
+        rank_proportion=config["projectPath"] + '/processed_results/post_nn/rp_{exp_no_nn}.tsv'
     script: 
         "Scripts/postprocessing/postprocessing.py"
         
 rule postprocessing_done:
     input:
-        result_post=expand(config["projectPath"] + '/processed_results/post/result_{exp_no}.tsv', exp_no=experimentDesign['experiment_no']),
-        rank_proportion=expand(config["projectPath"] + '/processed_results/post/rp_{exp_no}.tsv', exp_no=experimentDesign['experiment_no'])
+        result_post=expand(config["projectPath"] + '/processed_results/post_lr_rf_xbg/result_{exp_no_lr_rf_xbg}.tsv', exp_no_lr_rf_xbg=experimentDesign_lr_rf_xbg['experiment_no']),
+        rank_proportion=expand(config["projectPath"] + '/processed_results/post_lr_rf_xbg/rp_{exp_no_lr_rf_xbg}.tsv', exp_no_lr_rf_xbg=experimentDesign_lr_rf_xbg['experiment_no'])
     output:
         touch(config['tmpDirPath'] + "/postprocessing.done")
+        
+rule postprocessing_nn_done:
+    input:
+        result_post=expand(config["projectPath"] + '/processed_results/post_nn/result_{exp_no_nn}.tsv', exp_no_nn=experimentDesign_nn['experiment_no']),
+        rank_proportion=expand(config["projectPath"] + '/processed_results/post_nn/rp_{exp_no_nn}.tsv', exp_no_nn=experimentDesign_nn['experiment_no'])
+    output:
+        touch(config['tmpDirPath'] + "/postprocessing_nn.done")
         
 rule manuscript:
     input:
         rules.manuscript_abstract_R.output,
-        rules.manuscript_fusion_prep_R.output,
-        rules.manuscript_sv_prep_R.output,
-        rules.manuscript_figure_2_prep_or_R.output,
-        rules.manuscript_figure_2_prep_ac_R.output,
         rules.manuscript_figure_2_R.output,
-        rules.manuscript_figure_3_prep_fr_R.output,
+        rules.manuscript_figure_2_anova_R.output,
+        rules.manuscript_figure_2_anova_gene_R.output,
+        rules.manuscript_figure_2_vep_R.output,
         rules.manuscript_figure_3_R.output,
+        rules.manuscript_figure_3_fr_anova_R.output,
         rules.manuscript_figure_4_R.output,
-        rules.manuscript_figure_5_prep_benchmark_R.output,
+        rules.manuscript_figure_4_sup_R.output,
         rules.manuscript_figure_5_R.output,
+        config['tmpDirPath'] + "/sup_table.done",
+        config['tmpDirPath'] + "/agg_table.done",
+        rules.manuscript_sup_tab_sort_R.output 
+    output:
+        touch(config['tmpDirPath'] + "/manuscript.done")
+        
+rule sup_table:
+    input:
         rules.manuscript_sup_table_prediction_tab_R.output,
+        rules.manuscript_sup_table_prediction_emb_tab_R.output,
         rules.manuscript_sup_table_resource_tab_R.output,
         rules.manuscript_sup_table_association_tab_R.output,
         rules.manuscript_sup_table_tet2_tab_R.output,
         rules.manuscript_sup_table_cd79a_tab_R.output,
-        rules.manuscript_sup_table_resource_tab_html_R.output
+        rules.manuscript_sup_table_drug_tab_R.output 
     output:
-        touch(config['tmpDirPath'] + "/manuscript.done")
+        touch(config['tmpDirPath'] + "/sup_table.done")
         
+rule agg_table:
+    input:
+        rules.manuscript_agg_table_n_var_tab_R.output,
+        rules.manuscript_agg_table_n_var_vep_tab_R.output,
+        rules.manuscript_agg_table_fpkm_tab_R.output,
+        rules.manuscript_agg_table_sample_summary_tab_R.output,
+        rules.manuscript_agg_table_outrider_agg_tab_R.output,
+        rules.manuscript_agg_table_activation_agg_tab_R.output,
+        rules.manuscript_agg_table_fraser_agg_tab_R.output,
+        rules.manuscript_agg_table_absplice_agg_tab_R.output,
+        rules.manuscript_agg_table_fusion_agg_tab_R.output
+    output:
+        touch(config['tmpDirPath'] + "/agg_table.done")
+  
 rule manuscript_figure_3_prep_absplice:
     input:
         absplice_res=config["projectPath"] + '/processed_data/absplice_res.tsv',
@@ -264,15 +353,58 @@ rule manuscript_figure_3_prep_absplice:
         intogen_cancer_gene=config["IntOGen_cancer_gene"]
     script: 
         "Scripts/manuscript/figure_3_prep_absplice.py"
+        
+rule manuscript_figure_4_prep_prc:
+    input:
+        mll_benchmark=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_benchmark.tsv',
+        mll_var_filter=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_var_filter.tsv',
+        exp_viz_var_filter=config["projectPath"] + '/manuscript/figure_4/plot_data/exp_viz_var_filter.tsv'
+    output:
+        mll_prc=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_prc.tsv',
+        mll_ap=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_ap.tsv',
+        mll_ap_full=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_ap_full.tsv',
+        mll_benchmark_prc=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_benchmark_prc.tsv',
+        mll_benchmark_ap=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_benchmark_ap.tsv',
+        mll_var_filter_prc=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_var_filter_prc.tsv',
+        mll_var_filter_ap=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_var_filter_ap.tsv',
+        mll_var_filter_ap_full=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_var_filter_ap_full.tsv',
+        mll_emb_prc=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_emb_prc.tsv',
+        mll_emb_ap=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_emb_ap.tsv',
+        mll_emb_ap_full=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_emb_ap_full.tsv',
+        mll_method_prc=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_method_prc.tsv',
+        mll_method_ap=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_method_ap.tsv',
+        mll_method_ap_full=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_method_ap_full.tsv'
+    params:
+        projectPath = config["projectPath"],
+        intogenDir = config["intogenDir"],
+        vep_path = config["vep_path"],
+        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
+        single_group = config["cohort"]["single_group"]
+    script: 
+        "Scripts/manuscript/figure_4_prep_prc.py"
 
-rule manuscript_figure_4_prep_enrichment:
+rule manuscript_figure_4_prep_rp:
+    input:
+        mll_benchmark=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_benchmark.tsv'
+    output:
+        mll_benchmark_rp=config["projectPath"] + '/manuscript/figure_4/plot_data/mll_benchmark_rp.tsv',
+    params:
+        projectPath = config["projectPath"],
+        intogenDir = config["intogenDir"],
+        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
+        intogen_cancer_gene=config["IntOGen_cancer_gene"],
+        cgc_cancer_gene_processed=rules.preprocessing_label_generate_label_list_R.output[0]
+    script: 
+        "Scripts/manuscript/figure_4_prep_rp.py"
+
+rule manuscript_figure_5_prep_enrichment:
     input:
         ac_res=config["outriderDir"] + '/processed_results/aberrant_expression/' + config["geneAnnotation"] + '/outrider/' + config["cohort"]["single_group"][0] + '/res_filter_out.tsv',
         or_res=config["outriderDir"] + '/processed_results/aberrant_expression/' + config["geneAnnotation"] + '/outrider/' + config["cohort"]["single_group"][0] + '/OUTRIDER_results.tsv',
         fr_res=config["projectPath"] + '/processed_data/fr_res.tsv',
         absplice_res=config["projectPath"] + '/processed_data/absplice_res.tsv'
     output:
-        diag_fisher=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher.tsv'
+        diag_fisher=config["projectPath"] + '/manuscript/figure_5/plot_data/diag_fisher.tsv'
     params:
         projectPath = config["projectPath"],
         single_group=config['cohort']['single_group'],
@@ -280,35 +412,18 @@ rule manuscript_figure_4_prep_enrichment:
         gencode=config['gencode'],
         cgc_cancer_gene_processed=rules.preprocessing_label_generate_label_list_R.output[0],
     script: 
-        "Scripts/manuscript/figure_4_prep_enrichment.py"
+        "Scripts/manuscript/figure_5_prep_enrichment.py"
         
-rule manuscript_figure_4_GSEA:
+rule manuscript_figure_5_GSEA:
     input:
-        diag_fisher=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher.tsv'
+        diag_fisher=config["projectPath"] + '/manuscript/figure_5/plot_data/diag_fisher.tsv'
     output:
-        diag_fisher_gsea=config["projectPath"] + '/manuscript/figure_4/plot_data/diag_fisher_gsea.tsv'
+        diag_fisher_gsea=config["projectPath"] + '/manuscript/figure_5/plot_data/diag_fisher_gsea.tsv'
     params:
         projectPath = config["projectPath"],
         gencode=config['gencode']
     script: 
-        "Scripts/manuscript/figure_4_GSEA.py"
-        
-rule manuscript_figure_5_prep_prc:
-    input:
-        mll_benchmark=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark.tsv'
-    output:
-        mll_prc=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_prc.tsv',
-        mll_ap=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_ap.tsv',
-        mll_ap_full=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_ap_full.tsv',
-        mll_benchmark_prc=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark_prc.tsv',
-        mll_benchmark_ap=config["projectPath"] + '/manuscript/figure_5/plot_data/mll_benchmark_ap.tsv'
-    params:
-        projectPath = config["projectPath"],
-        intogenDir = config["intogenDir"],
-        experimentDesign=config["projectPath"] + '/experiment_design.tsv',
-        single_group = config["cohort"]["single_group"]
-    script: 
-        "Scripts/manuscript/figure_5_prep_prc.py"
+        "Scripts/manuscript/figure_5_GSEA.py"
         
 rule absplice_tab:
     input:

@@ -72,6 +72,8 @@ def intitialize_coeff_df(model_method):
         coeff_df = pd.DataFrame(columns=['Feature', 'feature_importances'])
     if model_method == "xgb_op":
         coeff_df = pd.DataFrame(columns=['Feature', 'feature_importances'])
+    if model_method == "nn":
+        coeff_df = pd.DataFrame(columns=['Feature', 'feature_importances'])    
     return(coeff_df)
 
 
@@ -256,6 +258,38 @@ def run_xgboost_optimized(features_model, labels,
     print(coeff_df_sub)
      
     return(predictions_test, coeff_df_sub)
+
+
+def run_nn(features_model, labels,
+                          train_index_num, test_index_num, random_round, 
+                          epochs, lr, input_dim, hidden_dim,
+                          ):
+    
+    from torch.utils.data import Dataset, DataLoader
+    from nn_model import nn_model, driver_dataset
+    import torch
+    
+    # get train/test
+    train_labels, test_labels = get_train_test_labels(labels, train_index_num, test_index_num)
+    train_features, test_features = get_train_test_features(features_model, train_index_num, test_index_num)
+
+    # Create data loaders
+    train_dataset = driver_dataset(train_features, train_labels)
+    test_dataset = driver_dataset(test_features, test_labels)
+    
+    train_loader = DataLoader(dataset=train_dataset, batch_size = len(train_features), shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size = len(test_features), shuffle=False)
+    
+    model = nn_model(input_dim, hidden_dim, lr)
+    model.set_writer(random_round, hidden_dim, lr, test_index_num)
+    model.reset_weights(model)
+
+    model.fit(train_loader, test_loader, epochs=epochs)
+    predictions_test = model(torch.tensor(test_features.values, dtype = torch.float32))
+    
+    # no coefficients in NN, we only return the predictions
+    return predictions_test.squeeze().detach().numpy()
+
 
 def generate_result_table(features_full, labels, predictions, random_round):
     res_df = features_full[['gene_id', 'geneSymbol']]

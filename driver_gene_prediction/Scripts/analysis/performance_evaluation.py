@@ -46,7 +46,7 @@ from analysis_function import *
 
 # %%
 # read in snakemake object
-file = open("/s/project/vale/driver_prediction_202401/processed_data/snakemake/postprocessing.p",'rb')
+file = open("/s/project/vale/driver_prediction_202402/processed_data/snakemake/postprocessing.p",'rb')
 snakemake = pickle.load(file)
 
 # %%
@@ -54,6 +54,7 @@ experiment_path = snakemake.input.experimentDesign
 res_dir = os.path.dirname(snakemake.output.result_post)
 project_dir = snakemake.params.projectPath
 intogen_dir = snakemake.params.intogenDir
+vep_dir = snakemake.params.vep_path
 
 cgc_cancer_gene_path = snakemake.params.cgc_cancer_gene_processed
 intogen_cancer_gene_path = snakemake.params.intogen_cancer_gene
@@ -62,12 +63,13 @@ intogen_cancer_gene_path = snakemake.params.intogen_cancer_gene
 # # Define plots
 
 # %%
-label_gene_list = 'CGC_leukemia_gene'
+label_gene_list = ['MLL_CGC_leukemia_gene']
 sample_group = 'leukemia_14group'
-model_method = 'rf'
-intogen_input_feature = ['clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv', '']
-outlier_input_feature = ['or,ac,absplice,fr', '']
-coess_input_feature = ['', "coess_cluster", "emb_omics", "emb_pops", "emb_pops_exp", "emb_string", "emb_string_exp"]
+model_method = ['lr','rf','xgb', 'xgb_op', 'nn']
+intogen_input_feature = ['clustl,hotmaps,smregions,fml,cbase,mutpanning,dndscv']
+outlier_input_feature = ['or,ac,absplice,fr']
+coess_input_feature = [""]
+
 
 plot_sub_dir = 'test'
 
@@ -118,7 +120,7 @@ exp_viz
 # %%
 exp_viz = simplify_exp(exp_viz)
 exp_viz, exp_tag_common, exp_tag_common_diaplay, exp_tag_individual_display_list = add_exp_tag(exp_viz, exp_tag_common_diaplay, exp_tag_individual_display_list)
-exp_viz = add_result_paths(exp_viz, project_dir, intogen_dir)
+exp_viz = add_result_paths(exp_viz, project_dir, intogen_dir, vep_dir)
 
 # exp_viz
 

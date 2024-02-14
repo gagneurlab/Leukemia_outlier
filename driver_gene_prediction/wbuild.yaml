@@ -3,8 +3,8 @@ projectTitle: driver_prediction
 
 
 # Project path
-projectPath: /s/project/vale/driver_prediction_202401
-htmlOutputPath: /s/project/vale/driver_prediction_202401/Output/html
+projectPath: /s/project/vale/driver_prediction_202402
+htmlOutputPath: /s/project/vale/driver_prediction_202402/Output/html
 scriptsPath: Scripts
 fileRegex: .*
 tmpDirPath: .tmp
@@ -12,8 +12,8 @@ tmpDirPath: .tmp
 
 # sample annotation
 sampleAnnotation: /s/project/mll/sample_info/sample_annotation_for_drop.tsv
-experimentDesign: /s/project/vale/driver_prediction_202401/experiment_design.tsv
-manuscriptWording: /s/project/vale/driver_prediction_202401/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
+experimentDesign: /s/project/vale/driver_prediction_202402/experiment_design.tsv
+manuscriptWording: /s/project/vale/driver_prediction_202402/manuscript/leukemie_driver_manuscript_wording-sample_annotation.tsv
 
 # cancer gene list
 CGC_cancer_gene: /s/project/vale/Resource/Census_allMon_20221205_GRCh37_v97.tsv
@@ -39,11 +39,11 @@ abspliceDirNoHeader: /s/project/mll/preprocess_202302/Somatic_Analysis_abSplice
 # network input
 coess_modules: /s/project/mll/resource/coess_supplementary_data/coessential_modules.csv
 joint_embedding_1: /s/project/bayesRare/gene_data/AE_Embeddings/combinations/pca-gtex_pca-crispr_norm-stringnolit_norm-stringnolitverse_norm-proteinsmall.tsv
-emb_omics: /s/project/cancer_pred/data/embeddings/dtf_gtex_depMap_portT5_lunar-snowflake-239_3787637_embedding.tsv
+emb_omics: /s/project/vale/Resource/felix_embedding/Supplementary_Table_S3_OMICS_EMB.tsv
 emb_pops: /s/project/cancer_pred/data/embeddings/pops_mat_d256.tsv
 emb_pops_exp: /s/project/cancer_pred/data/embeddings/pops_mat_exp_d256.tsv
-emb_string: /s/project/cancer_pred/data/embeddings/STRING_d128.tsv
-emb_string_exp: /s/project/cancer_pred/data/embeddings/STRING_EXP_d128.tsv
+emb_string: /s/project/vale/Resource/felix_embedding/Supplementary_Table_S5_STRING_256.tsv
+emb_string_exp: /s/project/vale/Resource/felix_embedding/Supplementary_Table_S6_STRING_EXP_256.tsv
 
 # VEP resource
 predictedConsequence: /s/project/vale/Resource/ensembl_variation_calculated_variant_consequences.csv
@@ -57,7 +57,8 @@ mll_arriba_dir: /s/project/mll/rawdata/res_from_mll/vale_arriba
 mll_star_fusion_dir: /s/project/mll/rawdata/res_from_mll/vale_star_fusion
 mll_manta: /s/project/mll/rawdata/res_from_mll/rnafusion_calls.txt
 mll_manta_sv: /s/project/mll/rawdata/res_from_mll/VALE_SV_202220414.tsv
-lrp1b_survival: /s/project/mll/rawdata/res_from_mll/OS_vHCL.xlsx
+lrp1b_survival_hclv: /s/project/mll/rawdata/res_from_mll/OS_vHCL.xlsx
+lrp1b_survival_hcl_mzl: /s/project/mll/rawdata/res_from_mll/20231218_HZL_MZL_LRP1B_OS.xlsx
 cnv_MLL_29041: /s/project/vale/Resource/res_stephan_mll/3060154.MLL_29041.denoisedCR.tsv
 cnv_MLL_12658: /s/project/vale/Resource/res_stephan_mll/1585590.MLL_12658.denoisedCR.tsv
 cnv_MLL_14744: /s/project/vale/Resource/res_stephan_mll/1943949.MLL_14744.denoisedCR.tsv
@@ -70,6 +71,8 @@ anonymization_table_mll: /s/project/vale/Resource/anonymization_table_mll.csv
 total_counts_marc: /s/project/vale/drop_marc_lrp1b/processed_data/aberrant_expression/v33/outrider/HCL_combined/total_counts.Rds
 size_factor_marc: /s/project/vale/Resource/res_marc_seifert_lrp1b/LRPB1_size_factors_sample_info.csv
 gene_anno_marc: /s/project/vale/drop_marc_lrp1b/processed_data/preprocess/v33/gene_name_mapping_v33.tsv
+figure_4_heatmap: /s/project/vale/Resource/figure_4_heatmap.rds
+drug_target: /s/project/vale/Resource/Figure4_DrugTarget_List.csv
 
 # MLL benchmark
 mutsigCVdir: /s/project/vale/benchmark/mutsigCV/runs/MLL_2023

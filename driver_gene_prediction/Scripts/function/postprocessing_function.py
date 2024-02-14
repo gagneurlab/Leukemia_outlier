@@ -295,7 +295,7 @@ def add_prediction_rank_post(res, intogen_input_feature, outlier_input_feature, 
         res = pd.merge(res, coess_select, on='GeneID', how='left')
         res = res.assign(Prediction_post=res.Prediction)
         res.loc[res.only_coess==True, 'Prediction_post'] = 0
-        res = res.sort_values(by='Prediction_post', ascending=False)
+        # res = res.sort_values(by='Prediction_post', ascending=False)
         res = res.assign(Rank_post = res.Prediction_post.rank(ascending=False, method='min'))
     else:
         res = res.assign(Prediction_post=res.Prediction)
