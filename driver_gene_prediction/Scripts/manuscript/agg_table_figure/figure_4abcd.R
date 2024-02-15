@@ -7,6 +7,7 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(ggplot2)
   library(pheatmap)
+  library(ggpubr)
 })
 
 source("function.R")
