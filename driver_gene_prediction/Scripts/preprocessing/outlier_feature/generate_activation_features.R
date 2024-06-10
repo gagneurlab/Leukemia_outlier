@@ -33,15 +33,10 @@
 #+ echo=FALSE
 saveRDS(snakemake, file.path(snakemake@params$projectPath,
                              "/processed_data/snakemake/generate_activation_features.snakemake"))
-# snakemake <- readRDS("/s/project/vale/driver_prediction_202303/processed_data/snakemake/generate_activation_features.snakemake")
- 
-
 
 
 ##### function #####
 source("Scripts/preprocessing/outlier_feature/functions.R")
-
-
 
 
 ##### process the data #####
